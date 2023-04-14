@@ -1,0 +1,21 @@
+{
+  "name": "chat-scenario",
+  "version": "1.0.0",
+  "description": "Scenario processor for chat systems",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "keywords": [
+    "chatgpt",
+    "scenario",
+    "chat"
+  ],
+  "author": "Petro Borshchahivskyi",
+  "license": "ISC",
+  "types": "./index.d.ts",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}

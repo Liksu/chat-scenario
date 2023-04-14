@@ -1,0 +1,103 @@
+export default class Scenario {
+    static orderSymbol = Symbol('order')
+    static defaultAct = 'default'
+    
+    scenario = {}
+    
+    history = []
+    act = null
+    context = {}
+    queue = []
+
+    constructor(text) {
+        this.scenario = this.prepare(text)
+    }
+
+    prepare(text) {
+        const scenario = {
+            [Scenario.orderSymbol]: [],
+        }
+        let act = Scenario.defaultAct
+        
+        text
+            .replace(/\r/g, '')
+            .split(/(?:\s*\n\s*){2,}/m)
+            .forEach(textBlock => {
+                const [role, ...content] = textBlock.split(/\s*\n\s*/m)
+
+                // extract new act
+                if (/\[.*]/.test(role)) {
+                    act = role.replace(/^\s*\[\s*|\s*]\s*$/g, '') || Scenario.defaultAct
+                    return null
+                }
+                
+                // skip commented blocks and acts
+                if (role.startsWith('#') || act.startsWith('#')) {
+                    return null
+                }
+
+                // prepare scenario for a new act
+                if (!scenario[act]) {
+                    scenario[act] = []
+                    scenario[Scenario.orderSymbol].push(act)
+                }
+
+                // store message
+                scenario[act].push({
+                    role: role.replace(/:\s*$/, '').trim(),
+                    content: content
+                        .filter(line => !line.startsWith('#'))
+                        .join(' ')
+                        .replace(/\\\s+/g, '\n')
+                })
+            })
+        
+        return scenario
+    }
+
+    build(context = this.context, act = Scenario.defaultAct) {
+        return this.scenario[act]?.map(message => ({
+            role: message.role,
+            content: message.content.replace(/\{(\w+)}/g, (_, key) => context[key] ?? '???')
+        })) ?? []
+    }
+    
+    execute(context, act = Scenario.defaultAct) {
+        Object.assign(this.context, context)
+        const messages = this.build(this.context, act)
+        this.history.push(...messages)
+        return messages
+    }
+    
+    start(context) {
+        this.clear()
+        this.queue = this.scenario[Scenario.orderSymbol].slice()
+        this.act = this.queue.shift()
+        return this.execute(context, this.act)
+    }
+    
+    next(context, returnHistory = false) {
+        this.act = this.queue.shift() ?? null
+        if (!this.act) return null
+        
+        const messages = this.execute(context, this.act)
+        return returnHistory ? this.history : messages
+    }
+    
+    answer(message) {
+        this.history.push(message)
+    }
+    
+    end() {
+        this.act = null
+        this.queue = []
+        return this.history
+    }
+    
+    clear() {
+        this.history = []
+        this.act = null
+        this.queue = []
+        this.context = {}
+    }
+}

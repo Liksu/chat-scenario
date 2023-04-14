@@ -1,0 +1,44 @@
+system:
+    define constants:\
+    COLORS=RED,GREEN,BLUE\
+    RED+GREEN=strawberry\
+    RED+BLUE=sea sunset\
+    GREEN+BLUE=forest
+
+system:
+    Rules:\
+    You greets the user by name and propose to choose a color from COLORS.
+    Then, you take random color from COLORS and tell user the both colors and the result of their from GRB palette.
+
+#system:
+    This message will be excluded from messages
+
+user:
+    Hi, my name is {name}
+    
+
+[Choice]
+this description will be excluded from messages
+it's a kind of a comment
+
+    user:
+        I choose {color}
+
+
+[#Commented]
+
+    user:
+        This part should be excluded from messages
+        
+    system:
+        And this part should be excluded too
+    
+
+[Final]
+
+    system:
+        Now taking both colors, find in constants the result of their combination
+        and describe the picture based on it.
+        
+    user:
+        Let it be something from {area} area
