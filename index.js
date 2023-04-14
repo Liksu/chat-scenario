@@ -71,8 +71,20 @@ export default class Scenario {
     
     start(context) {
         this.clear()
-        this.queue = this.scenario[Scenario.orderSymbol].slice()
+        
+        let index = 0
+        if (Number.isInteger(context)) {
+            index = context
+            context = null
+        } else if (typeof context === 'string') {
+            index = this.scenario[Scenario.orderSymbol].indexOf(context)
+            context = null
+        }
+        
+        this.queue = this.scenario[Scenario.orderSymbol].slice(index)
         this.act = this.queue.shift()
+        
+        if (!context) return this
         return this.execute(context, this.act)
     }
     
