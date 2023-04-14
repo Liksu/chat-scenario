@@ -96,6 +96,10 @@ export default class Scenario {
         return returnHistory ? this.history : messages
     }
     
+    get hasNext() {
+        return this.queue.length > 0
+    }
+    
     answer(message) {
         this.history.push(message)
     }
