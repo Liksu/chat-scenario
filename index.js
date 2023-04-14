@@ -82,9 +82,10 @@ export default class Scenario {
         }
         
         this.queue = this.scenario[Scenario.orderSymbol].slice(index)
-        this.act = this.queue.shift()
         
         if (!context) return this
+
+        this.act = this.queue.shift()
         return this.execute(context, this.act)
     }
     
