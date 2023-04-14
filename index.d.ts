@@ -17,7 +17,7 @@ export default class Scenario {
     
     public scenario: ScenarioData
 
-    public chat: ScenarioMessages
+    public history: ScenarioMessages
     public act: Act | null
     public context: ScenarioContextObject
     public queue: Array<Act>
