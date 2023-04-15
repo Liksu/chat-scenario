@@ -10,12 +10,14 @@ export interface ScenarioData {
     [act: Act]: ScenarioMessages
 }
 export type ScenarioContextObject = {[name: string]: string | null}
+export type ScenarioPlaceholders = {[act: Act]: Array<string>}
 
 export default class Scenario {
     static orderSymbol: symbol
     static defaultAct: string
     
     public scenario: ScenarioData
+    public placeholders: ScenarioPlaceholders
 
     public history: ScenarioMessages
     public act: Act | null
@@ -23,7 +25,7 @@ export default class Scenario {
     public queue: Array<Act>
     
     public constructor(text: string)
-    public prepare(text: string): ScenarioData
+    public prepare(text: string): [ScenarioData, ScenarioPlaceholders]
     public build(context: ScenarioContextObject, act?: Act): ScenarioMessages
     public execute(context: ScenarioContextObject, act?: Act): ScenarioMessages
     
@@ -33,6 +35,8 @@ export default class Scenario {
     public start(actName: string): Scenario
     
     public hasNext(): boolean
+    public nextPlaceholders(): ScenarioPlaceholders[Act]
+    
     public next(context: ScenarioContextObject, returnHistory?: boolean): ScenarioMessages
     public answer(answer: ScenarioMessage): void
     public end(): void

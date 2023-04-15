@@ -42,6 +42,12 @@ const expectedScenario = {
     [Scenario.orderSymbol]: ['default', 'Choice', 'Final']
 }
 
+const expectedPlaceholders = {
+    default: ['name'],
+    Choice: ['color'],
+    Final: ['area']
+}
+
 const firstAnswer = {
     role: 'assistant',
     content: `Hello John! Nice to meet you. I'd like you to choose a color from the following options: RED, GREEN, or BLUE. Once you've chosen your color, I'll select another one at random, and we'll see what combination they create in the GRB palette.`
@@ -67,6 +73,10 @@ describe('Scenario', () => {
 
     test('Prepares scenario', () => {
         expect(colorsScenario.scenario).toEqual(expectedScenario)
+    })
+    
+    test('Prepares placeholders', () => {
+        expect(colorsScenario.placeholders).toEqual(expectedPlaceholders)
     })
 
     test('Messages are correct array', () => {

@@ -3,6 +3,7 @@ export default class Scenario {
     static defaultAct = 'default'
     
     scenario = {}
+    placeholders = {}
     
     history = []
     act = null
@@ -10,7 +11,7 @@ export default class Scenario {
     queue = []
 
     constructor(text) {
-        this.scenario = this.prepare(text)
+        [this.scenario, this.placeholders] = this.prepare(text)
     }
 
     prepare(text) {
@@ -18,6 +19,14 @@ export default class Scenario {
             [Scenario.orderSymbol]: [],
         }
         let act = Scenario.defaultAct
+
+        const placeholders = {}
+        const storePlaceholder = (act, name) => {
+            if (!placeholders[act]) placeholders[act] = []
+            if (!placeholders[act].includes(name)) {
+                placeholders[act].push(name)
+            }
+        }
         
         text
             .replace(/\r/g, '')
@@ -49,10 +58,11 @@ export default class Scenario {
                         .filter(line => !line.startsWith('#'))
                         .join(' ')
                         .replace(/\\\s+/g, '\n')
+                        .replace(/\{(\w+)}/g, (_, name) => (storePlaceholder(act, name), _))
                 })
             })
-        
-        return scenario
+
+        return [scenario, placeholders]
     }
 
     build(context = this.context, act = Scenario.defaultAct) {
@@ -99,6 +109,10 @@ export default class Scenario {
     
     get hasNext() {
         return this.queue.length > 0
+    }
+    
+    get nextPlaceholders() {
+        return  this.placeholders[this.queue[0]] ?? []
     }
     
     answer(message) {
