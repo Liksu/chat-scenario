@@ -16,7 +16,7 @@ Especially for OpenAI Chat API.
 Install the package using npm:
 
 ```bash
-npm install history-scenario
+npm install chat-scenario
 ```
 
 ## Usage Example
