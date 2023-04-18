@@ -113,8 +113,8 @@ Now the `startMessages` contains the first act of the conversation, as an array 
         content: 'Rules:\nYou greets the user by name and propose to choose a color from COLORS. Then, you take random color from COLORS and tell user the both colors and the result of their from GRB palette.'
     },
     {
-        role: 'user',
-        content: 'Hi, my name is John'
+        role: 'system',
+        content: "Let's start the conversation, ask user for his name."
     },
 ]
 ```
@@ -220,9 +220,90 @@ After the scenario is finished, you can get the full conversation history:
 
 ```javascript
 const history = chatScenario.history
+```
 
-// that will contains:
-history === [
-    
+And it will contain this array:
+
+```javascript
+[
+    {
+        role: 'system',
+        content: 'define constants:\nCOLORS=RED,GREEN,BLUE\nRED+GREEN=strawberry\nRED+BLUE=sea sunset\nGREEN+BLUE=forest'
+    },
+    {
+        role: 'system',
+        content: 'Rules:\nYou greets the user by name and propose to choose a color from COLORS. Then, you take random color from COLORS and tell user the both colors and the result of their from GRB palette.'
+    },
+    {
+        role: 'system',
+        content: "Let's start the conversation, ask user for his name."
+    },
+    {
+        role: 'assistant',
+        content: 'Hello! What is your name?'
+    },
+    {
+        role: 'user',
+        content: 'Hi, my name is John'
+    },
+    {
+        role: 'system',
+        content: 'Now, ask user to choose a color from COLORS'
+    },
+    {
+        role: 'assistant',
+        content: 'Hi John! Nice to meet you. Please choose a color from the following options: RED, GREEN, or BLUE.'
+    },
+    {
+        role: 'user',
+        content: 'I choose blue'
+    },
+    {
+        role: 'assistant',
+        content: "Great, John! You've chosen BLUE. Now, let me randomly pick a color from COLORS... I've picked GREEN.\n\nWhen we mix BLUE and GREEN, the result is the color 'forest'"
+    },
+    {
+        role: 'system',
+        content: 'Now ask user to choose an area of imagination.'
+    },
+    {
+        role: 'assistant',
+        content: 'John, now please choose an area of imagination from the following options: Space, Ocean, or Jungle.'
+    },
+    {
+        role: 'user',
+        content: 'Let it be something from star wars'
+    },
+    {
+        role: 'system',
+        content: 'Now taking both colors, find in constants the result of their combination and describe the picture based on it.'
+    },
+    {
+        role: 'assistant',
+        content: "You've chosen the Star Wars area. As we previously mixed BLUE and GREEN to create the color 'forest', let's imagine a scene from this galaxy far, far away.\n\nPicture an uncharted, lush forest planet teeming with diverse flora and fauna. The towering trees with emerald leaves provide a natural canopy, filtering the sunlight into a soothing blue-green hue. Within this dense forest, a small rebel base is hidden, camouflaged by the vibrant foliage. Here, brave pilots and warriors gather, plotting their next move against the Galactic Empire. The ambient mix of blue and green lights from their high-tech equipment adds to the mysterious atmosphere of this secret hideout.\n\nIn this Star Wars-inspired scene, the 'forest' color helps to convey a sense of wonder, exploration, and the enduring battle between the forces of light and darkness."
+    }
 ]
+```
+
+Yep, the mixing of colors that gives the 'forest' color is not the best example, but it's just a demo ;)
+
+It is possible to create any kind of loops over the scenario's acts, so you can create a complex conversation with the assistant.\
+Something like this, going act by act, where the assistant prepared to ask questions before the user input:
+
+```javascript
+scenario.start()
+let userInput = {}
+let history = []
+
+while (history = scenario.next(userInput, true)) {
+    if (!history) break
+
+    const answer = await assistant.ask(history)
+    scenario.answer(answer)
+    output(answer.content)
+
+    if (scenario.hasNext && scenario.nextPlaceholders.length > 0) {
+        userInput = await input()
+    }
+}
 ```
