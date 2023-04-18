@@ -1,3 +1,6 @@
+% order = assistant, user
+% use test true
+
 system:
     define constants:\
     COLORS=RED,GREEN,BLUE\

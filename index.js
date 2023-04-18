@@ -1,47 +1,64 @@
+const COMA_REGEXP = /,(?=(?:[^"]|"[^"]*")*$)/
+const DIRECTIVE_REGEXP = /^%\s*(.*)\s*\n/gm;
+const BLOCK_SPLITTER_REGEXP = /(?:\s*\n\s*){2,}/m;
+const LINE_SPLITTER_REGEXP = /\s*\n\s*/m;
+const ACT_REGEXP = /^\s*\[\s*|\s*]\s*$/g;
+
 export default class Scenario {
     static orderSymbol = Symbol('order')
+    static placeholderSymbol = Symbol('placeholder')
     static defaultAct = 'default'
+
+    static directiveValues = {
+        'true': true,
+        'false': false,
+        'new_line': '\n',
+    }
     
     scenario = {}
-    placeholders = {}
+    config = {
+        join: ' ',
+        comment: '#',
+    }
     
     history = []
     act = null
     context = {}
     queue = []
 
-    constructor(text) {
-        [this.scenario, this.placeholders] = this.prepare(text)
+    constructor(text, config = {}) {
+        Object.assign(this.config, config)
+        this.scenario = this.prepare(text)
     }
 
     prepare(text) {
+        text = text.replace(/\r/g, '')
+        
         const scenario = {
             [Scenario.orderSymbol]: [],
         }
         let act = Scenario.defaultAct
 
-        const placeholders = {}
         const storePlaceholder = (act, name) => {
-            if (!placeholders[act]) placeholders[act] = []
-            if (!placeholders[act].includes(name)) {
-                placeholders[act].push(name)
+            if (!scenario[act][Scenario.placeholderSymbol]) scenario[act][Scenario.placeholderSymbol] = []
+            if (!scenario[act][Scenario.placeholderSymbol].includes(name)) {
+                scenario[act][Scenario.placeholderSymbol].push(name)
             }
         }
         
-        text
-            .replace(/\r/g, '')
-            .split(/(?:\s*\n\s*){2,}/m)
+        this.extractConfig(text)
+            .split(BLOCK_SPLITTER_REGEXP)
             .forEach(textBlock => {
-                const [role, ...content] = textBlock.split(/\s*\n\s*/m)
+                const [role, ...content] = textBlock.split(LINE_SPLITTER_REGEXP)
 
                 // extract new act
                 if (/\[.*]/.test(role)) {
-                    act = role.replace(/^\s*\[\s*|\s*]\s*$/g, '') || Scenario.defaultAct
+                    act = role.replace(ACT_REGEXP, '') || Scenario.defaultAct
                     return null
                 }
                 
                 // skip commented blocks and acts
-                if (role.startsWith('#') || act.startsWith('#')) {
+                if (role.startsWith(this.config.comment) || act.startsWith(this.config.comment)) {
                     return null
                 }
 
@@ -55,14 +72,36 @@ export default class Scenario {
                 scenario[act].push({
                     role: role.replace(/:\s*$/, '').trim(),
                     content: content
-                        .filter(line => !line.startsWith('#'))
-                        .join(' ')
+                        .filter(line => !line.startsWith(this.config.comment))
+                        .join(this.config.join ?? ' ')
                         .replace(/\\\s+/g, '\n')
                         .replace(/\{(\w+)}/g, (_, name) => (storePlaceholder(act, name), _))
                 })
             })
 
-        return [scenario, placeholders]
+        return scenario
+    }
+    
+    extractConfig(text) {
+        return text.replace(DIRECTIVE_REGEXP, (_, directive) => {
+            // change the processor behavior
+            if (directive.startsWith('use ')) {
+                const [use, key, ...values] = directive.split(/\s+/)
+                const value = values.join(' ').trim()
+                this.config[key.trim()] = Scenario.directiveValues[value] ?? (!isNaN(value) && !isNaN(parseFloat(value)) ? parseFloat(value) : value)
+                return ''
+            }
+            
+            // store user settings
+            if (/=/.test(directive)) {
+                const key = directive.slice(0, directive.indexOf('=')).trim()
+                const value = directive.slice(directive.indexOf('=') + 1).trim()
+                this.config[key] = COMA_REGEXP.test(value) ? value.split(COMA_REGEXP).map(item => item.trim()) : value
+                return ''
+            }
+            
+            return ''
+        })
     }
 
     build(context = this.context, act = Scenario.defaultAct) {
