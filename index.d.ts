@@ -43,7 +43,7 @@ export default class Scenario {
     public start(actIndex: number): Scenario
     public start(actName: string): Scenario
     
-    public get hasNext(): boolean
+    public get hasNext(): Act | null
     public get nextPlaceholders(): ScenarioConfig[Act]
     
     public next(context: ScenarioContextObject, returnHistory?: boolean): ScenarioMessages

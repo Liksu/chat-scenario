@@ -88,7 +88,8 @@ export default class Scenario {
 
         return scenario
     }
-    
+
+    //TODO: extract for each act separately and combine with default on each execution
     extractConfig(text) {
         return text.replace(DIRECTIVE_REGEXP, (_, directive) => {
             // change the processor behavior
@@ -160,7 +161,7 @@ export default class Scenario {
     }
     
     get hasNext() {
-        return this.queue.length > 0
+        return this.queue[0] ?? null
     }
     
     get nextPlaceholders() {
