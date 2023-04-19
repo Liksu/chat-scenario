@@ -152,6 +152,10 @@ export default class Scenario {
         return this.execute(context, this.act)
     }
     
+    get placeholders() {
+        return this.scenario[this.act]?.[Scenario.placeholderSymbol] ?? []
+    }
+    
     next(context, returnHistory = false) {
         this.act = this.queue.shift() ?? null
         if (!this.act) return null

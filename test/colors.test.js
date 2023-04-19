@@ -120,10 +120,14 @@ describe('Scenario', () => {
     })
 
     test('Check hasNext before Choice', () => {
-        expect(colorsScenario.hasNext).toEqual(true)
+        expect(colorsScenario.hasNext).toEqual('Choice')
     })
 
     test('Check placeholders', () => {
+        expect(colorsScenario.placeholders).toEqual(['name'])
+    })
+
+    test('Check next placeholders', () => {
         expect(colorsScenario.nextPlaceholders).toEqual(['color'])
     })
     
@@ -182,7 +186,7 @@ describe('Scenario', () => {
     })
 
     test('Check hasNext after final', () => {
-        expect(colorsScenario.hasNext).toEqual(false)
+        expect(colorsScenario.hasNext).toEqual(null)
     })
     
     test('The end', () => {
