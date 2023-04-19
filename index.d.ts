@@ -10,7 +10,13 @@ export interface ScenarioData {
     [act: Act]: ScenarioMessages
 }
 export type ScenarioContextObject = {[name: string]: string | null}
-export type ScenarioConfig = {[key: string]: string | number | boolean | Array<string>}
+export type ScenarioConfig = {
+    roleKey: string
+    contentKey: string
+    join: string
+    comment: string
+    [key: string]: string | number | boolean | Array<string>
+}
 
 export default class Scenario {
     static orderSymbol: symbol

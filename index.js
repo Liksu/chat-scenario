@@ -19,6 +19,8 @@ export default class Scenario {
     config = {
         join: ' ',
         comment: '#',
+        roleKey: 'role',
+        contentKey: 'content',
     }
     
     history = []
@@ -70,8 +72,8 @@ export default class Scenario {
 
                 // store message
                 scenario[act].push({
-                    role: role.replace(/:\s*$/, '').trim(),
-                    content: content
+                    [this.config.roleKey || 'role']: role.replace(/:\s*$/, '').trim(),
+                    [this.config.contentKey || 'content']: content
                         .filter(line => !line.startsWith(this.config.comment))
                         .join(this.config.join ?? ' ')
                         .replace(/\\\s+/g, '\n')

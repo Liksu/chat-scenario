@@ -60,6 +60,8 @@ const thirdAnswer = {
 const config = {
     join: ' ',
     comment: '#',
+    roleKey: 'role',
+    contentKey: 'content',
     test: true,
     order: ['assistant', 'user']
 }
