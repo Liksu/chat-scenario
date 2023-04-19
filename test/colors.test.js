@@ -1,5 +1,6 @@
 import {readFileSync} from "fs";
 import Scenario from "../index.js";
+import {jest} from '@jest/globals'
 
 const colors = readFileSync('test/colors.scenario', 'utf8')
 
@@ -24,6 +25,11 @@ const expectedScenario = {
         }
     ], {[Scenario.placeholderSymbol]: ['name']}),
     Choice: Object.assign([
+        {
+            role: 'output',
+            content: 'If assistant suggests to choose just a COLOR,\n' +
+                'please choose it from red, green or blue.'
+        },
         {
             role: 'user',
             content: 'I choose {color}'
@@ -57,18 +63,22 @@ const thirdAnswer = {
     content: `Alright, based on your choice of RED and my random selection of BLUE, we found that their combination is "sea sunset" in the constants provided. Let me describe a scene inspired by space using this combination.\n\nImagine a breathtaking cosmic vista, where the glow of a distant nebula resembles a "sea sunset." The warm, deep red hues of the surrounding interstellar clouds blend harmoniously with the cooler blues of nearby cosmic dust, creating a visual symphony. In the vast expanse of space, the "sea sunset" colors evoke a sense of serenity and awe, as if the stars themselves have gathered to witness the majesty of the universe's artwork. The scene is a testament to the beauty and the infinite possibilities that can be found in the depths of outer space.`
 }
 
+const output = jest.fn(content => console.log(content))
 const config = {
     join: ' ',
     comment: '#',
     roleKey: 'role',
     contentKey: 'content',
     test: true,
-    order: ['assistant', 'user']
+    order: ['assistant', 'user'],
+    actions: { output },
 }
 
 
 describe('Scenario', () => {
-    const colorsScenario = new Scenario(colors)
+    const colorsScenario = new Scenario(colors, {
+        actions: { output }
+    })
 
     test('Initializes', () => {
         expect(colorsScenario).toBeInstanceOf(Scenario)
@@ -138,6 +148,15 @@ describe('Scenario', () => {
         ])
     })
     
+    test('Check that action was ran', () => {
+        expect(output).toHaveBeenCalledWith(
+            colorsScenario.scenario['Choice'][0].content,
+            'Choice',
+            colorsScenario.scenario,
+            colorsScenario
+        )
+    })
+    
     test('Check history', () => {
         expect(colorsScenario.history.at(-1)).toEqual({
             role: 'user',
@@ -153,7 +172,7 @@ describe('Scenario', () => {
         const expectedHistory = [
             ...colorsScenario.build(undefined, 'default'),
             firstAnswer,
-            ...colorsScenario.build(undefined, 'Choice'),
+            ...colorsScenario.build(undefined, 'Choice').filter(msg => msg.role !== 'output'),
             secondAnswer,
             ...colorsScenario.build(undefined, 'Final'),
             thirdAnswer

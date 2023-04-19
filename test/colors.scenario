@@ -25,6 +25,10 @@ user:
 this description will be excluded from messages
 it's a kind of a comment
 
+    output:
+        If assistant suggests to choose just a COLOR,\
+        please choose it from red, green or blue.
+
     user:
         I choose {color}
 

@@ -21,6 +21,7 @@ export default class Scenario {
         comment: '#',
         roleKey: 'role',
         contentKey: 'content',
+        actions: {},
     }
     
     history = []
@@ -51,16 +52,16 @@ export default class Scenario {
         this.extractConfig(text)
             .split(BLOCK_SPLITTER_REGEXP)
             .forEach(textBlock => {
-                const [role, ...content] = textBlock.split(LINE_SPLITTER_REGEXP)
+                const [head, ...body] = textBlock.split(LINE_SPLITTER_REGEXP)
 
                 // extract new act
-                if (/\[.*]/.test(role)) {
-                    act = role.replace(ACT_REGEXP, '') || Scenario.defaultAct
+                if (/\[.*]/.test(head)) {
+                    act = head.replace(ACT_REGEXP, '') || Scenario.defaultAct
                     return null
                 }
                 
                 // skip commented blocks and acts
-                if (role.startsWith(this.config.comment) || act.startsWith(this.config.comment)) {
+                if (head.startsWith(this.config.comment) || act.startsWith(this.config.comment)) {
                     return null
                 }
 
@@ -71,13 +72,17 @@ export default class Scenario {
                 }
 
                 // store message
+                const role = head.replace(/:\s*$/, '').trim()
+                
+                const content = body
+                    .filter(line => !line.startsWith(this.config.comment))
+                    .join(this.config.join ?? ' ')
+                    .replace(/\\\s+/g, '\n')
+                    .replace(/\{(\w+)}/g, (_, name) => (storePlaceholder(act, name), _))
+                
                 scenario[act].push({
-                    [this.config.roleKey || 'role']: role.replace(/:\s*$/, '').trim(),
+                    [this.config.roleKey || 'role']: role,
                     [this.config.contentKey || 'content']: content
-                        .filter(line => !line.startsWith(this.config.comment))
-                        .join(this.config.join ?? ' ')
-                        .replace(/\\\s+/g, '\n')
-                        .replace(/\{(\w+)}/g, (_, name) => (storePlaceholder(act, name), _))
                 })
             })
 
@@ -116,6 +121,12 @@ export default class Scenario {
     execute(context, act = Scenario.defaultAct) {
         Object.assign(this.context, context)
         const messages = this.build(this.context, act)
+            .map(message => {
+                const action = this.config.actions?.[message.role]
+                if (typeof action === 'function') return action(message.content, act, this.scenario, this)
+                return action ?? message
+            })
+            .filter(Boolean)
         this.history.push(...messages)
         return messages
     }

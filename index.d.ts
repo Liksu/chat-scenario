@@ -1,22 +1,21 @@
 type Act = string
 
-export interface ScenarioMessage {
-    role: string
-    content: string
-}
+export type ScenarioMessage = Record<string, string>
 export type ScenarioMessages = Array<ScenarioMessage>
 export interface ScenarioData {
     [order: symbol]: Array<string>
-    [act: Act]: ScenarioMessages
+    [act: Act]: ScenarioMessages & Record<symbol, Array<string>>
 }
-export type ScenarioContextObject = {[name: string]: string | null}
+export type ScenarioContextObject = Record<string, string | null>
+export type ScenarioAction = (content: string, act: Act, scenario: ScenarioData, instance: Scenario) => ScenarioMessage | null | void
+export type ScenarioActions = Record<string, ScenarioAction>
 export type ScenarioConfig = {
     roleKey: string
     contentKey: string
     join: string
     comment: string
-    [key: string]: string | number | boolean | Array<string>
-}
+    actions: ScenarioActions
+} & Record<string, string | number | boolean | Array<string> | ScenarioActions>
 
 export default class Scenario {
     static orderSymbol: symbol
