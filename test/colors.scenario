@@ -1,5 +1,6 @@
 % order = assistant, user
 % use test true
+% and this is just a comment
 
 system:
     define constants:\

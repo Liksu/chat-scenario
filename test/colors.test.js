@@ -81,6 +81,22 @@ describe('Scenario', () => {
     test('Config updated correctly', () => {
         expect(colorsScenario.config).toEqual(config)
     })
+    
+    test('Starts from 2', () => {
+        const returnValue = colorsScenario.start(1)
+
+        expect(returnValue).toBe(colorsScenario)
+        expect(colorsScenario.queue).toEqual(['Choice', 'Final'])
+        expect(colorsScenario.act).toBeNull()
+    })
+
+    test('Starts from Choice', () => {
+        const returnValue = colorsScenario.start('Choice')
+
+        expect(returnValue).toBe(colorsScenario)
+        expect(colorsScenario.queue).toEqual(['Choice', 'Final'])
+        expect(colorsScenario.act).toBeNull()
+    })
 
     test('Messages are correct array', () => {
         const startMessages = colorsScenario.start({name: 'John'})
@@ -91,6 +107,14 @@ describe('Scenario', () => {
             expect(message).toHaveProperty('role')
             expect(message).toHaveProperty('content')
         })
+    })
+
+    test('Check hasNext before Choice', () => {
+        expect(colorsScenario.hasNext).toEqual(true)
+    })
+
+    test('Check placeholders', () => {
+        expect(colorsScenario.nextPlaceholders).toEqual(['color'])
     })
     
     test('Last item is the user input', () => {
@@ -136,5 +160,16 @@ describe('Scenario', () => {
         ]
         
         expect(colorsScenario.history).toEqual(expectedHistory)
+    })
+
+    test('Check hasNext after final', () => {
+        expect(colorsScenario.hasNext).toEqual(false)
+    })
+    
+    test('The end', () => {
+        const fullHistory = colorsScenario.end()
+        expect(colorsScenario.queue).toEqual([])
+        expect(colorsScenario.act).toEqual(null)
+        expect(fullHistory).toEqual(colorsScenario.history)
     })
 })

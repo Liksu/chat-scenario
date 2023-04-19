@@ -153,7 +153,7 @@ export default class Scenario {
     }
     
     get nextPlaceholders() {
-        return  this.placeholders[this.queue[0]] ?? []
+        return this.scenario[this.queue[0]]?.[Scenario.placeholderSymbol] ?? []
     }
     
     answer(message) {
