@@ -56,5 +56,6 @@ export default class Scenario {
     public answer(answer: ScenarioMessage): void
     public end(): void
 
-    public clear(): void    
+    public clear(): void
+    public readHistory(): string
 }

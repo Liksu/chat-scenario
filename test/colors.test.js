@@ -4,6 +4,7 @@ import {jest} from '@jest/globals'
 
 const colors = readFileSync('test/colors.scenario', 'utf8')
 
+const order = ['assistant', 'user', true, 42]
 const expectedScenario = {
     default: Object.assign([
         {
@@ -26,7 +27,7 @@ const expectedScenario = {
     ], {
         [Scenario.placeholderSymbol]: ['name'],
         [Scenario.configSymbol]: {
-            order: ['assistant', 'user', true, 42],
+            order,
         }
     }),
     Choice: Object.assign([
@@ -85,6 +86,40 @@ const config = {
     test: true,
     actions: { output },
 }
+
+const textHistory = `system:
+	define constants:
+	COLORS=RED,GREEN,BLUE
+	RED+GREEN=strawberry
+	RED+BLUE=sea sunset
+	GREEN+BLUE=forest
+
+system:
+	Rules:
+	You greets the user by name and propose to choose a color from COLORS. Then, you take random color from COLORS and tell user the both colors and the result of their from GRB palette.
+
+user:
+	Hi, my name is John
+
+assistant:
+	Hello John! Nice to meet you. I'd like you to choose a color from the following options: RED, GREEN, or BLUE. Once you've chosen your color, I'll select another one at random, and we'll see what combination they create in the GRB palette.
+
+user:
+	I choose red
+
+assistant:
+	Great, John! You've chosen RED. I'll now randomly pick a color from the COLORS list. Let's see... I've chosen BLUE. So, the combination of RED and BLUE gives us "sea sunset" according to the GRB palette. Isn't that a beautiful mix?
+
+system:
+	Now taking both colors, find in constants the result of their combination and describe the picture based on it.
+
+user:
+	Let it be something from space area 
+
+assistant:
+	Alright, based on your choice of RED and my random selection of BLUE, we found that their combination is "sea sunset" in the constants provided. Let me describe a scene inspired by space using this combination.
+	
+	Imagine a breathtaking cosmic vista, where the glow of a distant nebula resembles a "sea sunset." The warm, deep red hues of the surrounding interstellar clouds blend harmoniously with the cooler blues of nearby cosmic dust, creating a visual symphony. In the vast expanse of space, the "sea sunset" colors evoke a sense of serenity and awe, as if the stars themselves have gathered to witness the majesty of the universe's artwork. The scene is a testament to the beauty and the infinite possibilities that can be found in the depths of outer space.`
 
 
 describe('Scenario', () => {
@@ -203,7 +238,7 @@ describe('Scenario', () => {
 
     test('Check Final act config', () => {
         expect(colorsScenario.actConfig).toEqual({loop: true})
-        expect(colorsScenario.actConfig.order).toEqual(['assistant', 'user', true, 42])
+        expect(colorsScenario.actConfig.order).toEqual(order)
         expect(colorsScenario.actConfig.join).toEqual(' ')
     })
 
@@ -216,5 +251,9 @@ describe('Scenario', () => {
         expect(colorsScenario.queue).toEqual([])
         expect(colorsScenario.act).toEqual(null)
         expect(fullHistory).toEqual(colorsScenario.history)
+    })
+    
+    test('Check history', () => {
+        expect(colorsScenario.readHistory()).toEqual(textHistory)
     })
 })

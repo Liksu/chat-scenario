@@ -214,6 +214,15 @@ export default class Scenario {
         this.context = {}
     }
 
+    readHistory() {
+        const roleKey = this.config.roleKey || 'role'
+        const contentKey = this.config.contentKey || 'content'
+
+        return this.history
+            .map(message => `${message[roleKey]}:\n\t${message[contentKey].replace(/\n/g, '\n\t')}`)
+            .join('\n\n')
+    }
+
     #checkCreateAct = (scenario, act) => {
         if (!scenario[act]) {
             scenario[act] = []
