@@ -1,6 +1,6 @@
 {
   "name": "chat-scenario",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Scenario processor for chat systems",
   "main": "index.js",
   "type": "module",

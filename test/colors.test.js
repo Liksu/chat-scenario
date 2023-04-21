@@ -46,6 +46,10 @@ const expectedScenario = {
     }),
     Final: Object.assign([
         {
+            role: 'output',
+            content: 'This output will be excluded in the runtime'
+        },
+        {
             role: 'system',
             content: 'Now taking both colors, find in constants the result of their combination and describe the picture based on it.'
         },
@@ -189,15 +193,6 @@ describe('Scenario', () => {
         ])
     })
     
-    test('Check that action was ran', () => {
-        expect(output).toHaveBeenCalledWith(
-            colorsScenario.scenario['Choice'][0].content,
-            'Choice',
-            colorsScenario.scenario,
-            colorsScenario
-        )
-    })
-    
     test('Check history', () => {
         expect(colorsScenario.history.at(-1)).toEqual({
             role: 'user',
@@ -207,6 +202,10 @@ describe('Scenario', () => {
     
     test('Check final', () => {
         colorsScenario.answer(secondAnswer)
+        colorsScenario.scenario.Final.forEach(msg => {
+            if (msg.role === 'output') msg.role = '#output'
+        })
+        
         const finalMessages = colorsScenario.next({area: 'space'})
         colorsScenario.answer(thirdAnswer)
 
@@ -241,5 +240,15 @@ describe('Scenario', () => {
     
     test('Check history', () => {
         expect(colorsScenario.readHistory('system')).toEqual(textHistory)
+    })
+
+    test('Check that action was ran', () => {
+        expect(output).toHaveBeenCalledTimes(1)
+        expect(output).toHaveBeenCalledWith(
+            colorsScenario.scenario['Choice'][0].content,
+            'Choice',
+            colorsScenario.scenario,
+            colorsScenario
+        )
     })
 })

@@ -128,10 +128,13 @@ export default class Scenario {
     }
 
     build(context = this.context, act = Scenario.defaultAct) {
-        return this.scenario[act]?.map(message => ({
-            role: message.role,
-            content: message.content.replace(/\{(\w+)}/g, (_, key) => context[key] ?? '???')
-        })) ?? []
+        return this.scenario[act]
+            ?.filter(message => !message[this.config.roleKey].startsWith(this.config.comment))
+            .map(message => ({
+                ...message,
+                [this.config.contentKey]: message[this.config.contentKey]
+                    .replace(/\{(\w+)}/g, (_, key) => context[key] ?? '???')
+            })) ?? []
     }
     
     execute(context, act = Scenario.defaultAct) {

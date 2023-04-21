@@ -47,6 +47,9 @@ it's a kind of a comment
 [Final]
 % loop
 
+    output:
+        This output will be excluded in the runtime
+    
     system:
         Now taking both colors, find in constants the result of their combination
         and describe the picture based on it.
