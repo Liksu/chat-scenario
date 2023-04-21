@@ -3,7 +3,7 @@ const DIRECTIVE_REGEXP = /^%\s*(.*)\s*\n?/gm
 const BLOCK_SPLITTER_REGEXP = /(?:\s*\n\s*){2,}/m
 const LINE_SPLITTER_REGEXP = /\s*\n\s*/m
 const ACT_REGEXP = /^\s*\[\s*|\s*]\s*$/g
-const DEFAULT_CONTENT_REGEXP = /^(.+?)\n\n\[.+?]\n/s
+const DEFAULT_CONTENT_REGEXP = /^(.+?)\n\s*\n\s*\[.+?]\s*\n/s
 
 const tryBoolean = value => value === 'true' ? true : value === 'false' ? false : value
 const tryNumber = value => !isNaN(value) && !isNaN(parseFloat(value)) ? parseFloat(value) : tryBoolean(value)
@@ -50,7 +50,7 @@ export default class Scenario {
         
         // extract default config that has no act
         const defaultContent = DEFAULT_CONTENT_REGEXP.exec(text)?.[1]
-        if (defaultContent.trim()) {
+        if (defaultContent?.trim()) {
             const cleanContent = this.extractConfig(defaultContent, scenario, Scenario.defaultAct)
             text = text.replace(defaultContent, cleanContent)
         }
