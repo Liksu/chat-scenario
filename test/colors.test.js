@@ -104,13 +104,6 @@ describe('Scenario', () => {
         expect(colorsScenario.config).toEqual(config)
     })
     
-    test('Check act config', () => {
-        const actConfig = colorsScenario.getActConfig('Final')
-        expect(actConfig).toEqual({loop: true})
-        expect(actConfig.order).toEqual(['assistant', 'user', true, 42])
-        expect(actConfig.join).toEqual(' ')
-    })
-    
     test('Starts from 2', () => {
         const returnValue = colorsScenario.start(1)
 
@@ -206,6 +199,12 @@ describe('Scenario', () => {
         ]
         
         expect(colorsScenario.history).toEqual(expectedHistory)
+    })
+
+    test('Check Final act config', () => {
+        expect(colorsScenario.actConfig).toEqual({loop: true})
+        expect(colorsScenario.actConfig.order).toEqual(['assistant', 'user', true, 42])
+        expect(colorsScenario.actConfig.join).toEqual(' ')
     })
 
     test('Check hasNext after final', () => {

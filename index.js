@@ -171,6 +171,12 @@ export default class Scenario {
         return this.scenario[this.act]?.[Scenario.placeholderSymbol] ?? []
     }
     
+    get actConfig() {
+        return this.scenario[this.act]?.[Scenario.configSymbol]
+            ?? this.scenario[Scenario.defaultAct]?.[Scenario.configSymbol]
+            ?? this.config
+    }
+    
     next(context, returnHistory = false) {
         this.act = this.queue.shift() ?? null
         if (!this.act) return null
@@ -189,10 +195,6 @@ export default class Scenario {
     
     get nextConfig() {
         return this.scenario[this.queue[0]]?.[Scenario.configSymbol] ?? {}
-    }
-    
-    getActConfig(act = Scenario.defaultAct) {
-        return this.scenario[act]?.[Scenario.configSymbol] ?? null
     }
     
     answer(message) {

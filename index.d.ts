@@ -45,7 +45,8 @@ export default class Scenario {
     public start(): Scenario
     public start(actIndex: number): Scenario
     public start(actName: string): Scenario
-    
+
+    public get actConfig(): ScenarioActConfig
     public get placeholders(): ScenarioPlaceholders
     public get hasNext(): Act | null
     public get nextPlaceholders(): ScenarioPlaceholders
@@ -55,6 +56,5 @@ export default class Scenario {
     public answer(answer: ScenarioMessage): void
     public end(): void
 
-    public getActConfig(act: Act): ScenarioActConfig | null
     public clear(): void    
 }
