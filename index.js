@@ -217,7 +217,7 @@ export default class Scenario {
             scenario[act] = []
             scenario[act][Scenario.placeholderSymbol] = []
             
-            const proto = scenario[Scenario.defaultAct]?.[Scenario.configSymbol] ?? Object.prototype
+            const proto = scenario[Scenario.defaultAct]?.[Scenario.configSymbol] ?? this.config
             scenario[act][Scenario.configSymbol] = Object.create(proto)
 
             scenario[Scenario.orderSymbol].push(act)

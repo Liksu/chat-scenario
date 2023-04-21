@@ -108,6 +108,7 @@ describe('Scenario', () => {
         const actConfig = colorsScenario.getActConfig('Final')
         expect(actConfig).toEqual({loop: true})
         expect(actConfig.order).toEqual(['assistant', 'user', true, 42])
+        expect(actConfig.join).toEqual(' ')
     })
     
     test('Starts from 2', () => {
