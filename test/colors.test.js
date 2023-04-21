@@ -87,18 +87,7 @@ const config = {
     actions: { output },
 }
 
-const textHistory = `system:
-	define constants:
-	COLORS=RED,GREEN,BLUE
-	RED+GREEN=strawberry
-	RED+BLUE=sea sunset
-	GREEN+BLUE=forest
-
-system:
-	Rules:
-	You greets the user by name and propose to choose a color from COLORS. Then, you take random color from COLORS and tell user the both colors and the result of their from GRB palette.
-
-user:
+const textHistory = `user:
 	Hi, my name is John
 
 assistant:
@@ -109,9 +98,6 @@ user:
 
 assistant:
 	Great, John! You've chosen RED. I'll now randomly pick a color from the COLORS list. Let's see... I've chosen BLUE. So, the combination of RED and BLUE gives us "sea sunset" according to the GRB palette. Isn't that a beautiful mix?
-
-system:
-	Now taking both colors, find in constants the result of their combination and describe the picture based on it.
 
 user:
 	Let it be something from space area 
@@ -254,6 +240,6 @@ describe('Scenario', () => {
     })
     
     test('Check history', () => {
-        expect(colorsScenario.readHistory()).toEqual(textHistory)
+        expect(colorsScenario.readHistory('system')).toEqual(textHistory)
     })
 })

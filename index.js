@@ -214,11 +214,13 @@ export default class Scenario {
         this.context = {}
     }
 
-    readHistory() {
+    readHistory(skipRoles = []) {
+        if (!Array.isArray(skipRoles)) skipRoles = [skipRoles]
         const roleKey = this.config.roleKey || 'role'
         const contentKey = this.config.contentKey || 'content'
 
         return this.history
+            .filter(message => !skipRoles.includes(message[roleKey]))
             .map(message => `${message[roleKey]}:\n\t${message[contentKey].replace(/\n/g, '\n\t')}`)
             .join('\n\n')
     }

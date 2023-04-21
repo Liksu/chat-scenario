@@ -57,5 +57,5 @@ export default class Scenario {
     public end(): void
 
     public clear(): void
-    public readHistory(): string
+    public readHistory(skipRoles?: string | Array<string>): string
 }
