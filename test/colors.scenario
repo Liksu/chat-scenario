@@ -1,6 +1,7 @@
-% order = assistant, user
+% order = assistant, user, true, 42
 % use test true
 % and this is just a comment
+#% and this is a comment too
 
 system:
     define constants:\
@@ -34,6 +35,7 @@ it's a kind of a comment
 
 
 [#Commented]
+% ignored
 
     user:
         This part should be excluded from messages
@@ -43,6 +45,7 @@ it's a kind of a comment
     
 
 [Final]
+% loop
 
     system:
         Now taking both colors, find in constants the result of their combination

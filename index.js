@@ -1,17 +1,23 @@
 const COMA_REGEXP = /,(?=(?:[^"]|"[^"]*")*$)/
-const DIRECTIVE_REGEXP = /^%\s*(.*)\s*\n/gm;
-const BLOCK_SPLITTER_REGEXP = /(?:\s*\n\s*){2,}/m;
-const LINE_SPLITTER_REGEXP = /\s*\n\s*/m;
-const ACT_REGEXP = /^\s*\[\s*|\s*]\s*$/g;
+const DIRECTIVE_REGEXP = /^%\s*(.*)\s*\n?/gm
+const BLOCK_SPLITTER_REGEXP = /(?:\s*\n\s*){2,}/m
+const LINE_SPLITTER_REGEXP = /\s*\n\s*/m
+const ACT_REGEXP = /^\s*\[\s*|\s*]\s*$/g
+const DEFAULT_CONTENT_REGEXP = /^(.+?)\n\n\[.+?]\n/s
+
+const tryBoolean = value => value === 'true' ? true : value === 'false' ? false : value
+const tryNumber = value => !isNaN(value) && !isNaN(parseFloat(value)) ? parseFloat(value) : tryBoolean(value)
+const tryArray = value => COMA_REGEXP.test(value)
+                            ? value.split(COMA_REGEXP).map(item => tryNumber(item.trim()))
+                            : tryNumber(value)
 
 export default class Scenario {
     static orderSymbol = Symbol('order')
     static placeholderSymbol = Symbol('placeholder')
+    static configSymbol = Symbol('config')
     static defaultAct = 'default'
 
     static directiveValues = {
-        'true': true,
-        'false': false,
         'new_line': '\n',
     }
     
@@ -41,15 +47,15 @@ export default class Scenario {
             [Scenario.orderSymbol]: [],
         }
         let act = Scenario.defaultAct
-
-        const storePlaceholder = (act, name) => {
-            if (!scenario[act][Scenario.placeholderSymbol]) scenario[act][Scenario.placeholderSymbol] = []
-            if (!scenario[act][Scenario.placeholderSymbol].includes(name)) {
-                scenario[act][Scenario.placeholderSymbol].push(name)
-            }
-        }
         
-        this.extractConfig(text)
+        // extract default config that has no act
+        const defaultContent = DEFAULT_CONTENT_REGEXP.exec(text)?.[1]
+        if (defaultContent.trim()) {
+            const cleanContent = this.extractConfig(defaultContent, scenario, Scenario.defaultAct)
+            text = text.replace(defaultContent, cleanContent)
+        }
+
+        text
             .split(BLOCK_SPLITTER_REGEXP)
             .forEach(textBlock => {
                 const [head, ...body] = textBlock.split(LINE_SPLITTER_REGEXP)
@@ -57,6 +63,13 @@ export default class Scenario {
                 // extract new act
                 if (/\[.*]/.test(head)) {
                     act = head.replace(ACT_REGEXP, '') || Scenario.defaultAct
+                    if (act.startsWith(this.config.comment)) return null
+                    
+                    const description = body
+                        .filter(line => !line.startsWith(this.config.comment))
+                        .join('\n')
+
+                    this.extractConfig(description, scenario, act)
                     return null
                 }
                 
@@ -66,10 +79,7 @@ export default class Scenario {
                 }
 
                 // prepare scenario for a new act
-                if (!scenario[act]) {
-                    scenario[act] = []
-                    scenario[Scenario.orderSymbol].push(act)
-                }
+                this.#checkCreateAct(scenario, act)
 
                 // store message
                 const role = head.replace(/:\s*$/, '').trim()
@@ -78,7 +88,7 @@ export default class Scenario {
                     .filter(line => !line.startsWith(this.config.comment))
                     .join(this.config.join ?? ' ')
                     .replace(/\\\s+/g, '\n')
-                    .replace(/\{(\w+)}/g, (_, name) => (storePlaceholder(act, name), _))
+                    .replace(/\{(\w+)}/g, (_, name) => (this.#storePlaceholder(scenario, act, name), _))
                 
                 scenario[act].push({
                     [this.config.roleKey || 'role']: role,
@@ -89,14 +99,13 @@ export default class Scenario {
         return scenario
     }
 
-    //TODO: extract for each act separately and combine with default on each execution
-    extractConfig(text) {
+    extractConfig(text, scenario, act) {
         return text.replace(DIRECTIVE_REGEXP, (_, directive) => {
             // change the processor behavior
             if (directive.startsWith('use ')) {
                 const [use, key, ...values] = directive.split(/\s+/)
                 const value = values.join(' ').trim()
-                this.config[key.trim()] = Scenario.directiveValues[value] ?? (!isNaN(value) && !isNaN(parseFloat(value)) ? parseFloat(value) : value)
+                this.config[key.trim()] = Scenario.directiveValues[value] ?? tryNumber(value)
                 return ''
             }
             
@@ -104,7 +113,13 @@ export default class Scenario {
             if (/=/.test(directive)) {
                 const key = directive.slice(0, directive.indexOf('=')).trim()
                 const value = directive.slice(directive.indexOf('=') + 1).trim()
-                this.config[key] = COMA_REGEXP.test(value) ? value.split(COMA_REGEXP).map(item => item.trim()) : value
+                this.#storeConfig(scenario, act, key, tryArray(value))
+                return ''
+            }
+            
+            // store directives
+            if (/^\w+$/.test(directive)) {
+                this.#storeConfig(scenario, act, directive, true)
                 return ''
             }
             
@@ -172,6 +187,14 @@ export default class Scenario {
         return this.scenario[this.queue[0]]?.[Scenario.placeholderSymbol] ?? []
     }
     
+    get nextConfig() {
+        return this.scenario[this.queue[0]]?.[Scenario.configSymbol] ?? {}
+    }
+    
+    getActConfig(act = Scenario.defaultAct) {
+        return this.scenario[act]?.[Scenario.configSymbol] ?? null
+    }
+    
     answer(message) {
         this.history.push(message)
     }
@@ -187,5 +210,29 @@ export default class Scenario {
         this.act = null
         this.queue = []
         this.context = {}
+    }
+
+    #checkCreateAct = (scenario, act) => {
+        if (!scenario[act]) {
+            scenario[act] = []
+            scenario[act][Scenario.placeholderSymbol] = []
+            
+            const proto = scenario[Scenario.defaultAct]?.[Scenario.configSymbol] ?? Object.prototype
+            scenario[act][Scenario.configSymbol] = Object.create(proto)
+
+            scenario[Scenario.orderSymbol].push(act)
+        }
+    }
+    
+    #storePlaceholder = (scenario, act, name) => {
+        this.#checkCreateAct(scenario, act)
+        if (!scenario[act][Scenario.placeholderSymbol].includes(name)) {
+            scenario[act][Scenario.placeholderSymbol].push(name)
+        }
+    }
+    
+    #storeConfig = (scenario, act, key, value) => {
+        this.#checkCreateAct(scenario, act)
+        scenario[act][Scenario.configSymbol][key] = value
     }
 }

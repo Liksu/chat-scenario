@@ -23,7 +23,12 @@ const expectedScenario = {
             role: 'user',
             content: 'Hi, my name is {name}'
         }
-    ], {[Scenario.placeholderSymbol]: ['name']}),
+    ], {
+        [Scenario.placeholderSymbol]: ['name'],
+        [Scenario.configSymbol]: {
+            order: ['assistant', 'user', true, 42],
+        }
+    }),
     Choice: Object.assign([
         {
             role: 'output',
@@ -34,7 +39,10 @@ const expectedScenario = {
             role: 'user',
             content: 'I choose {color}'
         }
-    ], {[Scenario.placeholderSymbol]: ['color']}),
+    ], {
+        [Scenario.placeholderSymbol]: ['color'],
+        [Scenario.configSymbol]: {}
+    }),
     Final: Object.assign([
         {
             role: 'system',
@@ -44,7 +52,12 @@ const expectedScenario = {
             role: 'user',
             content: 'Let it be something from {area} area '
         }
-    ], {[Scenario.placeholderSymbol]: ['area']}),
+    ], {
+        [Scenario.placeholderSymbol]: ['area'],
+        [Scenario.configSymbol]: {
+            loop: true
+        }
+    }),
     [Scenario.orderSymbol]: ['default', 'Choice', 'Final']
 }
 
@@ -70,7 +83,6 @@ const config = {
     roleKey: 'role',
     contentKey: 'content',
     test: true,
-    order: ['assistant', 'user'],
     actions: { output },
 }
 
@@ -90,6 +102,12 @@ describe('Scenario', () => {
     
     test('Config updated correctly', () => {
         expect(colorsScenario.config).toEqual(config)
+    })
+    
+    test('Check act config', () => {
+        const actConfig = colorsScenario.getActConfig('Final')
+        expect(actConfig).toEqual({loop: true})
+        expect(actConfig.order).toEqual(['assistant', 'user', true, 42])
     })
     
     test('Starts from 2', () => {
@@ -129,6 +147,10 @@ describe('Scenario', () => {
 
     test('Check next placeholders', () => {
         expect(colorsScenario.nextPlaceholders).toEqual(['color'])
+    })
+    
+    test('Check next config', () => {
+        expect(colorsScenario.nextConfig).toEqual({})
     })
     
     test('Last item is the user input', () => {
