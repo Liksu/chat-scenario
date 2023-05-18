@@ -1,6 +1,12 @@
-% order = assistant, user, true, 42
-% use test true
-% and this is just a comment
+% parsed_values = string with spaces, true, 42, \s, \n, \t, false, NaN
+% act.unused = false
+% use title Colors imagination
+% scenario.version = 1
+% scenario.inputs.colors = storable, required
+% scenario.inputs.areas = blank,
+% parse keys.role sender
+% parser.unused.option = true
+% and this is just a comment because does not starts with 'use', 'parse' or equals sign, and has more that one word
 #% and this is a comment too
 
 system:
@@ -19,7 +25,7 @@ system:
     This message will be excluded from messages
 
 user:
-    Hi, my name is {name}
+    Hi, my name is {name|I don't want to tell you my name}
     
 
 [Choice]
@@ -31,7 +37,7 @@ it's a kind of a comment
         please choose it from red, green or blue.
 
     user:
-        I choose {color}
+        I choose random color to not use of the placeholder
 
 
 [#Commented]
@@ -46,6 +52,7 @@ it's a kind of a comment
 
 [Final]
 % loop
+% act.stopWord = exit
 
     output:
         This output will be excluded in the runtime

@@ -1,5 +1,6 @@
 .idea
-scenario.tmbundle
 node_modules
+scenario.tmbundle
 test.tmbundle
-/coverage/
+coverage
+dist

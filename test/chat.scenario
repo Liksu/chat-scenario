@@ -1,0 +1,13 @@
+% order = user, assistant
+% stopWords = quit, exit, stop, bye, goodbye
+% loop
+% parse comment //
+
+user:
+    // the user will write a prompt and the assistant will respond
+    // because of specified order
+    {userInput}
+
+[]
+// here is still the default act
+% act.sample = true

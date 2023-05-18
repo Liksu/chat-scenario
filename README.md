@@ -19,6 +19,21 @@ Install the package using npm:
 npm install chat-scenario
 ```
 
+## Syntax
+
+`#` - comment\
+`[Act name]` - act name\
+`role:` - role name\
+text after role - message content\
+`\` - multiline message splitter\
+`{placeholder}` - placeholder\
+`{placeholder|default}` - placeholder with default value\
+`% name = value` - configuration option for current act\
+`% name` - configuration option for current act that will be equal to true\
+`% use name value` - configuration for the whole scenario
+`% parse name value` - configuration option for parser
+
+
 ## Usage Example
 
 ### The Idea
