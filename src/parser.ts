@@ -1,6 +1,6 @@
 import {
     ActData,
-    ActName,
+    ActName, DeepPartial,
     ScenarioConfig,
     ScenarioConfigRecognizedValue,
     ScenarioData, ScenarioMessage,
@@ -13,19 +13,11 @@ import {
     DEFAULT_CONTENT_REGEXP,
     LINE_SPLITTER_REGEXP,
     CONFIG_REGEXP,
-    restoreType, CONFIG_LINE_REGEXP,
+    restoreType, CONFIG_LINE_REGEXP, mergeConfigs, clone, deepSet,
 } from './utils'
 
 export default class ScenarioParser<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
-    public raw?: string
-    public scenario: ScenarioData<RoleKey, ContentKey> = {
-        acts: {},
-        config: {
-            order: [],
-        },
-    }
-
-    public config: ScenarioParserConfig = {
+    public static config: ScenarioParserConfig = {
         join: ' ',
         comment: '#',
         newLine: '\\',
@@ -36,19 +28,20 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
         }
     }
 
-    constructor(text?: string | ScenarioParserConfig, config?: ScenarioParserConfig) {
+    public raw?: string
+    public scenario: ScenarioData<RoleKey, ContentKey> = {
+        acts: {},
+        config: {
+            order: [],
+        },
+    }
+
+    public config: ScenarioParserConfig
+
+    constructor(text?: string | ScenarioParserConfig, config?: DeepPartial<ScenarioParserConfig>) {
         if (typeof text === 'object') [text, config] = [undefined, text]
         
-        if (config) {
-            this.config = {
-                ...this.config,
-                ...config,
-                keys: {
-                    ...this.config.keys,
-                    ...config.keys
-                }
-            }
-        }
+        this.config = mergeConfigs(ScenarioParser.config, config ?? null)
         
         if (text) {
             this.raw = text
@@ -76,7 +69,7 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
             parserConfig = this.config
         } else {
             text = scenarioText.trim()
-            parserConfig = JSON.parse(JSON.stringify(this.config)) // structuredClone are not available in nodejs version <17
+            parserConfig = clone(this.config)
         }
         
         // remove windows line endings
@@ -214,19 +207,7 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
     }
 
     private updateConfig(config: ScenarioConfig, key: string, value: ScenarioConfigRecognizedValue) {
-        let configRef: any = config
-        let configKey = key.trim()
-
-        if (/\./.test(key)) {
-            const parts = key.split('.')
-            configKey = parts.pop() as string
-            configRef = parts.reduce((ref, key) => {
-                if (!ref[key]) ref[key] = {}
-                return ref[key]
-            }, configRef)
-        }
-
-        configRef[configKey] = typeof value === 'string' ? restoreType(value) : value
+        deepSet(config, key, typeof value === 'string' ? restoreType(value) : value)
     }
     
     private createAct(scenario: ScenarioData<RoleKey, ContentKey>, act: ActName, description?: string) {
@@ -249,29 +230,5 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
         scenario.acts[act].placeholders[placeholderName] = restoreType(defaultValues.join(' ').trim(), false) || null
         scenario.acts[act].hasPlaceholders = true
         return placeholderName
-    }
-    
-    getActPlaceholders(act: ActName): string[] {
-        return Object.keys(this.scenario.acts[act]?.placeholders ?? {})
-    }
-    
-    getActConfig(act: ActName): ScenarioConfig {
-        return this.scenario.acts[act]?.config
-            ?? this.scenario.acts[this.config.keys.defaultAct]?.config
-            ?? {}
-    }
-
-    getActsMap(scenario?: ScenarioData<RoleKey, ContentKey> | null): Map<ActName, ActData<RoleKey, ContentKey>>
-    getActsMap(scenario: ScenarioData<RoleKey, ContentKey> | null, messagesOnly: true): Map<ActName, ScenarioMessage[]>
-    getActsMap(scenario: ScenarioData<RoleKey, ContentKey> | null, messagesOnly: false): Map<ActName, ActData<RoleKey, ContentKey>>
-    getActsMap(scenario: ScenarioData<RoleKey, ContentKey> | null = this.scenario, messagesOnly: boolean = false): Map<ActName, ActData<RoleKey, ContentKey>> | Map<ActName, ScenarioMessage[]> {
-        if (!scenario) scenario = this.scenario
-        const source: Array<[ActName, ActData<RoleKey, ContentKey>]> = scenario.config.order.map(act => [act, this.scenario.acts[act]])
-        
-        if (messagesOnly) {
-            return new Map(source.map(([act, {messages}]) => [act, messages])) as Map<ActName, ScenarioMessage[]>
-        }
-        
-        return new Map(source)
     }
 }

@@ -1,8 +1,7 @@
 import ScenarioParser from "./parser";
+import { ScenarioParserConfig } from './interfaces'
 
-export default class Scenario {
-    static defaultAct = ScenarioParser.defaultAct
-    
+export default class ScenarioProcessor<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     scenario = {}
     history = []
     act = null
@@ -11,7 +10,7 @@ export default class Scenario {
     parsedData = null
     config = {}
 
-    constructor(scenario, config = {}) {
+    constructor(scenario?: string, config?: ScenarioParserConfig) {
         if (typeof scenario === 'string') {
             scenario = new ScenarioParser(scenario, config)
         }
@@ -21,17 +20,7 @@ export default class Scenario {
         Object.assign(this.config, config, scenario.config)
     }
 
-    build(context = this.context, act = Scenario.defaultAct) {
-        return this.scenario[act]
-            ?.filter(message => !message[this.config.roleKey].startsWith(this.config.comment))
-            .map(message => ({
-                ...message,
-                [this.config.contentKey]: message[this.config.contentKey]
-                    .replace(/\{(\w+)}/g, (_, key) => context[key] ?? '???')
-            })) ?? []
-    }
-
-    execute(context, act = Scenario.defaultAct) {
+    execute(context, act = ScenarioProcessor.defaultAct) {
         Object.assign(this.context, context)
         const messages = this.build(this.context, act)
             .map(message => {
@@ -52,11 +41,11 @@ export default class Scenario {
             index = context
             context = null
         } else if (typeof context === 'string') {
-            index = this.scenario[Scenario.orderSymbol].indexOf(context)
+            index = this.scenario[ScenarioProcessor.orderSymbol].indexOf(context)
             context = null
         }
 
-        this.queue = this.scenario[Scenario.orderSymbol].slice(index)
+        this.queue = this.scenario[ScenarioProcessor.orderSymbol].slice(index)
 
         if (!context) return this
 
@@ -65,12 +54,12 @@ export default class Scenario {
     }
 
     get placeholders() {
-        return this.scenario[this.act]?.[Scenario.placeholderSymbol] ?? []
+        return this.scenario[this.act]?.[ScenarioProcessor.placeholderSymbol] ?? []
     }
 
     get actConfig() {
-        return this.scenario[this.act]?.[Scenario.configSymbol]
-            ?? this.scenario[Scenario.defaultAct]?.[Scenario.configSymbol]
+        return this.scenario[this.act]?.[ScenarioProcessor.configSymbol]
+            ?? this.scenario[ScenarioProcessor.defaultAct]?.[ScenarioProcessor.configSymbol]
             ?? this.config
     }
 
@@ -87,11 +76,11 @@ export default class Scenario {
     }
 
     get nextPlaceholders() {
-        return this.scenario[this.queue[0]]?.[Scenario.placeholderSymbol] ?? []
+        return this.scenario[this.queue[0]]?.[ScenarioProcessor.placeholderSymbol] ?? []
     }
 
     get nextConfig() {
-        return this.scenario[this.queue[0]]?.[Scenario.configSymbol] ?? {}
+        return this.scenario[this.queue[0]]?.[ScenarioProcessor.configSymbol] ?? {}
     }
 
     answer(message) {

@@ -16,6 +16,10 @@ export interface ScenarioConfig {
     [key: string]: ScenarioConfigRecognizedValue | ScenarioConfigRecognizedValue[] | ScenarioConfig
 }
 
+export interface ScenarioContext {
+    [key: string]: string | {toString(): string} | ScenarioContext
+}
+
 /**
  * Config that describes the output format
  * You can pass it to the ScenarioParser constructor, or set directly in the scenario text
@@ -153,8 +157,14 @@ export interface ScenarioData<RoleKey extends string = 'role', ContentKey extend
     }
     config: ScenarioConfig & {
         order: ActName[]
+        parserOverrides?: DeepPartial<ScenarioParserConfig>
+        rolePlaceholders?: boolean
     }
 }
+
+export type DeepPartial<T> = T extends object
+    ? { [P in keyof T]?: DeepPartial<T[P]> }
+    : T
 
 
 
