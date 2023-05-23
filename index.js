@@ -1,2 +1,2 @@
 export * from './src/parser.ts'
-export * from './src/processor.ts'
+export * from './old/processor.ts'

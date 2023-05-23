@@ -1,5 +1,5 @@
-import ScenarioParser from "./parser";
-import { ScenarioParserConfig } from './interfaces'
+import ScenarioParser from "../src/parser";
+import { ScenarioParserConfig } from '../src/interfaces'
 
 export default class ScenarioProcessor<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     scenario = {}

@@ -19,18 +19,25 @@ Install the package using npm:
 npm install chat-scenario
 ```
 
+## Structure
+
+(ScenarioSync | ScenarioAsync) ← Scenario ← ScenarioParser\
+&plus; plugins
+
 ## Syntax
 
 `#` - comment\
 `[Act name]` - act name\
 `role:` - role name\
 text after role - message content\
-`\` - multiline message splitter\
+`\ ` - multiline message splitter\
 `{placeholder}` - placeholder\
 `{placeholder|default}` - placeholder with default value\
 `% name = value` - configuration option for current act\
 `% name` - configuration option for current act that will be equal to true\
+`% scenario.name = value` - configuration for the whole scenario
 `% use name value` - configuration for the whole scenario
+`% parser.name = value` - configuration option for parser
 `% parse name value` - configuration option for parser
 
 
