@@ -1,6 +1,7 @@
 import {
     ActData,
     ActName,
+    DeepPartial,
     ScenarioConfig,
     ScenarioContext,
     ScenarioData,
@@ -15,7 +16,7 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
     public defaultAct: ActName
     public defaultPlaceholder: string = '???'
     
-    constructor(scenario: ScenarioData<RoleKey, ContentKey> | string, config?: Partial<ScenarioParserConfig>) {
+    constructor(scenario: ScenarioData<RoleKey, ContentKey> | string, config?: DeepPartial<ScenarioParserConfig>) {
         this.scenario = typeof scenario === 'string'
             ? new ScenarioParser<RoleKey, ContentKey>(scenario, config).scenario
             : scenario

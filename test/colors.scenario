@@ -37,9 +37,9 @@ it's a kind of a comment
         please choose it from red, green or blue.
 
     user:
-        I choose random color to not use of the placeholder
+        I choose random color to not use of the placeholder  
 
-
+  
 [#Commented]
 % ignored
 
@@ -54,12 +54,13 @@ it's a kind of a comment
 % loop
 % act.stopWord = exit
 
-    output:
-        This output will be excluded in the runtime
-    
     system:
         Now taking both colors, find in constants the result of their combination
         and describe the picture based on it.
         
+    output:
+        % highlight
+        This output will be excluded in the runtime
+    
     user:
         Let it be something from {area} area

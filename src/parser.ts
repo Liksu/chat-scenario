@@ -1,19 +1,26 @@
 import {
     ActData,
-    ActName, DeepPartial,
+    ActName,
+    DeepPartial,
     ScenarioConfig,
     ScenarioConfigRecognizedValue,
-    ScenarioData, ScenarioMessage,
+    ScenarioData,
+    ScenarioMessage,
     ScenarioParserConfig
 } from './interfaces'
 import {
     ACT_BRACKETS_REGEXP,
     BLOCK_SPLITTER_REGEXP,
     CHECK_ACT_REGEXP,
+    clone,
+    CONFIG_LINE_REGEXP,
+    CONFIG_REGEXP,
+    deepSet,
     DEFAULT_CONTENT_REGEXP,
     LINE_SPLITTER_REGEXP,
-    CONFIG_REGEXP,
-    restoreType, CONFIG_LINE_REGEXP, mergeConfigs, clone, deepSet,
+    mergeConfigs,
+    PLACEHOLDERS_REGEXP,
+    restoreType,
 } from './utils'
 
 export default class ScenarioParser<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
@@ -90,6 +97,8 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
             const cleanContent = this.extractConfig(defaultContent, scenario, act, parserConfig)
             text = text.replace(defaultContent, cleanContent)
         }
+        
+        let actMessageIndex = 0
 
         // parse text block by block
         text
@@ -108,6 +117,7 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
 
                     description = this.extractConfig(description, scenario, act, parserConfig)
                     this.createAct(scenario, act, description)
+                    actMessageIndex = 0
                     return null
                 }
 
@@ -127,14 +137,17 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
 
                 const content = body
                     .filter(line => !line.startsWith(parserConfig.comment))
+                    .filter(line => this.extractConfig(line, scenario, act, parserConfig, actMessageIndex).trim())
                     .join(parserConfig.join ?? ' ')
                     .replace(newLineRe, '\n')
-                    .replace(/\{([^}]+?)}/g, (_, name) => '{' + this.storePlaceholder(scenario, act, name) + '}')
+                    .replace(PLACEHOLDERS_REGEXP, (_, name) => '{' + this.storePlaceholder(scenario, act, name) + '}')
 
                 scenario.acts[act].messages.push({
                     [parserConfig.keys.role || 'role']: role,
                     [parserConfig.keys.content || 'content']: content
                 } as ScenarioMessage<RoleKey, ContentKey>)
+
+                actMessageIndex++
             })
 
         if (!scenarioText) this.scenario = scenario
@@ -147,63 +160,76 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
         return new RegExp(newLine + join + '+', 'g')
     }
 
-    private extractConfig(text: string, scenario: ScenarioData<RoleKey, ContentKey>, act: ActName, parserConfig: ScenarioParserConfig): string {
-        return text.replace(CONFIG_REGEXP, (_, directive: string) => {
-            // change the parsed behavior
-            if (directive.startsWith('parse ')) {
-                const [parse, key, ...values] = directive.split(/\s+/)
-                const value = values.join(' ').trim()
-                this.updateConfig(parserConfig, key, value)
-                this.updateConfig(scenario.config, `parserOverrides.${key}`, value)
-                return ''
-            }
-
-            // store the scenario config
-            if (directive.startsWith('use ')) {
-                const [use, key, ...values] = directive.split(/\s+/)
-                this.updateConfig(scenario.config, key, values.join(' ').trim())
-                return ''
-            }
-
-            // parse and store config line
-            if (/=/.test(directive)) {
-                let {key, value} = directive.match(CONFIG_LINE_REGEXP)?.groups ?? {}
-                if (!key) return ''
-
-                let config
-                if (key.startsWith('scenario.')) {
-                    // store the scenario config
-                    config = scenario.config
-                    key = key.replace('scenario.', '')
-                } else if (key.startsWith('parser.')) {
-                    // change the parsed behavior
-                    config = parserConfig
-                    key = key.replace('parser.', '')
-                    this.updateConfig(scenario.config, `parserOverrides.${key}`, value)
-                } else if (key.startsWith('act.')) {
-                    // for an act config, remove the prefix if any
-                    key = key.replace('act.', '')
-                }
-                
-                // if config variable was not assigned, it's an act config 
-                if (!config) {
-                    this.createAct(scenario, act)
-                    config = scenario.acts[act].config
-                }
-                
-                this.updateConfig(config, key, value)
-                return ''
-            }
-
-            // store directives
-            if (/^\w+$/.test(directive)) {
-                this.createAct(scenario, act)
-                this.updateConfig(scenario.acts[act].config, directive, true)
-                return ''
-            }
-
+    private storeConfig = (
+        directive: string,
+        scenario: ScenarioData<RoleKey, ContentKey>,
+        act: ActName,
+        parserConfig: ScenarioParserConfig,
+        index?: number
+    ) => {
+        // change the parsed behavior
+        if (directive.startsWith('parse ')) {
+            const [parse, key, ...values] = directive.split(/\s+/)
+            const value = values.join(' ').trim()
+            this.updateConfig(parserConfig, key, value)
+            this.updateConfig(scenario.config, `parserOverrides.${key}`, value)
             return ''
-        })
+        }
+
+        // store the scenario config
+        if (directive.startsWith('use ')) {
+            const [use, key, ...values] = directive.split(/\s+/)
+            this.updateConfig(scenario.config, key, values.join(' ').trim())
+            return ''
+        }
+
+        // parse and store config line
+        if (/=/.test(directive)) {
+            let {key, value} = directive.match(CONFIG_LINE_REGEXP)?.groups ?? {}
+            if (!key) return ''
+
+            let config
+            if (key.startsWith('scenario.')) {
+                // store the scenario config
+                config = scenario.config
+                key = key.replace('scenario.', '')
+            } else if (key.startsWith('parser.')) {
+                // change the parsed behavior
+                config = parserConfig
+                key = key.replace('parser.', '')
+                this.updateConfig(scenario.config, `parserOverrides.${key}`, value)
+            } else if (key.startsWith('act.')) {
+                // for an act config, remove the prefix if any
+                key = key.replace('act.', '')
+            }
+
+            // if config variable was not assigned, it's an act config 
+            if (!config) {
+                this.createAct(scenario, act)
+                config = scenario.acts[act].config
+                if (index != null) key = `messages.${index}.${key}`
+            }
+
+            this.updateConfig(config, key, value)
+            return ''
+        }
+
+        // store directives
+        if (/^\w+$/.test(directive)) {
+            this.createAct(scenario, act)
+            if (index != null) directive = `messages.${index}.${directive}`
+            this.updateConfig(scenario.acts[act].config, directive, true)
+            return ''
+        }
+
+        return ''
+    }
+    
+    private extractConfig(text: string, scenario: ScenarioData<RoleKey, ContentKey>, act: ActName, parserConfig: ScenarioParserConfig, index?: number): string {
+        return text.replace(
+            CONFIG_REGEXP,
+            (_, directive) => this.storeConfig(directive, scenario, act, parserConfig, index)
+        )
     }
 
     private updateConfig(config: ScenarioConfig, key: string, value: ScenarioConfigRecognizedValue) {

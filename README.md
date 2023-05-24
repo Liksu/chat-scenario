@@ -21,8 +21,15 @@ npm install chat-scenario
 
 ## Structure
 
-(ScenarioSync | ScenarioAsync) ← Scenario ← ScenarioParser\
-&plus; plugins
+```text
+works with:
+prompts       ←      history      ←        scenario    ←    text
+client  ← (ScenarioSync | ScenarioAsync) ← Scenario ← ScenarioParser
+           + plugins - should depends on the scenario config
+```
+
+ScenarioSync - keeps all in memory, have sync methods, ideally for tools that do not need to store the scenario and history between prompts, like CLI tools\
+ScenarioAsync - designed to work in async environment, like web server, allow to store the scenario and history in DB between calls, have async methods, ideally for api-chatbots
 
 ## Syntax
 

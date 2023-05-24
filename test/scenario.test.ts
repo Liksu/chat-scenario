@@ -1,5 +1,5 @@
 import Scenario from '../src/scenario'
-import { colorsScenarioFullMap, colorsScenarioMessagesMap } from './colors.reference'
+import { colorsScenarioFullMap, colorsScenarioMessagesMap, colorsScenarioReference } from './colors.reference'
 import { readFileSync } from 'fs'
 
 const colorsScenarioText = readFileSync('test/colors.scenario', 'utf8')
@@ -13,10 +13,7 @@ describe('ScenarioParser helpers', () => {
 
     it('should returns act config', () => {
         const actConfig = scenario.getActConfig('Final')
-        expect(actConfig).toEqual({
-            loop: true,
-            stopWord: 'exit'
-        })
+        expect(actConfig).toEqual(colorsScenarioReference.acts.Final.config)
     })
 
     it('should returns act placeholders', () => {

@@ -45,12 +45,12 @@ export const colorsScenarioReference = {
         Final: {
             messages: [
                 {
-                    sender: 'output',
-                    content: 'This output will be excluded in the runtime'
-                },
-                {
                     sender: 'system',
                     content: 'Now taking both colors, find in constants the result of their combination and describe the picture based on it.'
+                },
+                {
+                    sender: 'output',
+                    content: 'This output will be excluded in the runtime'
                 },
                 {
                     sender: 'user',
@@ -63,7 +63,12 @@ export const colorsScenarioReference = {
             },
             config: {
                 loop: true,
-                stopWord: 'exit'
+                stopWord: 'exit',
+                messages: {
+                    1: {
+                        highlight: true
+                    }
+                }
             }
         }
     },
