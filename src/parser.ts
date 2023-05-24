@@ -13,6 +13,7 @@ import {
     BLOCK_SPLITTER_REGEXP,
     CHECK_ACT_REGEXP,
     clone,
+    CONFIG_DIRECTIVE_REGEXP,
     CONFIG_LINE_REGEXP,
     CONFIG_REGEXP,
     deepSet,
@@ -215,7 +216,7 @@ export default class ScenarioParser<RoleKey extends string = 'role', ContentKey 
         }
 
         // store directives
-        if (/^\w+$/.test(directive)) {
+        if (CONFIG_DIRECTIVE_REGEXP.test(directive)) {
             this.createAct(scenario, act)
             if (index != null) directive = `messages.${index}.${directive}`
             this.updateConfig(scenario.acts[act].config, directive, true)
