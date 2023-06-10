@@ -4,19 +4,19 @@ import {
     HistoryCost, HistoryCostItem,
     HistoryManagerConfig, ScenarioAction,
     ScenarioConfig, ScenarioContext,
-    ScenarioData, ScenarioMessage, ScenarioParserConfig,
+    ScenarioData, ScenarioMessage, ScenarioParserConfig, ScenarioPlugin,
     ScenarioState
 } from './interfaces'
 import Scenario from './scenario'
 import { mergeContexts } from './utils'
 
 export default class HistoryManager<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
-    public config: HistoryManagerConfig
+    public config: HistoryManagerConfig<RoleKey, ContentKey>
     
     public state: ScenarioState<RoleKey, ContentKey> | null = null
     public scenario: Scenario<RoleKey, ContentKey> | null = null
 
-    constructor(config: HistoryManagerConfig) {
+    constructor(config: HistoryManagerConfig<RoleKey, ContentKey>) {
         this.config = config
     }
     
@@ -70,9 +70,9 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state.context = mergeContexts(this.state.context, context)
         
         const messages = this.buildMessages()
-        if (!messages.length) return null
-        
-        this.state.history.push(...messages)
+        if (messages) this.state.history.push(...messages)
+
+        this.runPlugins()
         return messages
     }
     
@@ -83,6 +83,13 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state.cost.totalTokens += cost.total_tokens
         
         return this.state.cost.totalTokens
+    }
+    
+    private runPlugins() {
+        this.config.plugins?.forEach(plugin => {
+            if (!this.state || !this.scenario) return
+            plugin(this.state, this.scenario, this)
+        })
     }
     
     private buildMessages(): ScenarioMessage<RoleKey, ContentKey>[] {

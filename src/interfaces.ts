@@ -1,3 +1,6 @@
+import Scenario from './scenario'
+import HistoryManager from './history-manager'
+
 /**
  * Make the parameters more explicit
  */
@@ -24,9 +27,15 @@ export type ScenarioAction<RoleKey extends string = 'role', ContentKey extends s
     state: ScenarioState<RoleKey, ContentKey>
 ) => ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[] | void | null
 
-export interface HistoryManagerConfig {
-    actions?: Record<string, ScenarioAction>
-    plugins?: Record<string, ScenarioAction>
+export type ScenarioPlugin<RoleKey extends string = 'role', ContentKey extends string = 'content'> = (
+    state: ScenarioState<RoleKey, ContentKey>,
+    scenario: Scenario<RoleKey, ContentKey>,
+    manager: HistoryManager<RoleKey, ContentKey>
+) => void
+
+export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
+    actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
+    plugins?: ScenarioPlugin<RoleKey, ContentKey>[]
 }
 
 
