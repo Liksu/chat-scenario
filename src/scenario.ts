@@ -2,7 +2,7 @@ import {
     ActData,
     ActName,
     DeepPartial,
-    ScenarioConfig,
+    ScenarioConfig, ScenarioConfigRecognizedValue,
     ScenarioContext,
     ScenarioData,
     ScenarioMessage,
@@ -15,6 +15,8 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
     public scenario: ScenarioData<RoleKey, ContentKey>
     public defaultAct: ActName
     public defaultPlaceholder: string = '???'
+    public roleKey: RoleKey
+    public contentKey: ContentKey
     
     constructor(scenario: ScenarioData<RoleKey, ContentKey> | string, config?: DeepPartial<ScenarioParserConfig>) {
         this.scenario = typeof scenario === 'string'
@@ -29,20 +31,21 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
             ?? this.scenario.config.parserOverrides?.defaultPlaceholder
             ?? this.defaultPlaceholder
         ) as string
+
+        this.roleKey = (this.scenario.config.parserOverrides?.keys?.role ?? ScenarioParser.config.keys.role) as RoleKey
+        this.contentKey = (this.scenario.config.parserOverrides?.keys?.content ?? ScenarioParser.config.keys.content) as ContentKey
     }
 
     public build(context: ScenarioContext, act = this.defaultAct): ScenarioMessage<RoleKey, ContentKey>[] {
-        const roleKey = (this.scenario.config.parserOverrides?.keys?.role ?? ScenarioParser.config.keys.role) as RoleKey
-        const contentKey = (this.scenario.config.parserOverrides?.keys?.content ?? ScenarioParser.config.keys.content) as ContentKey
         const comment = this.scenario.config.parserOverrides?.comment ?? ScenarioParser.config.comment
         
         return this.scenario.acts[act].messages
-            ?.filter(message => !message[roleKey].startsWith(comment))
+            ?.filter(message => !message[this.roleKey].startsWith(comment))
             .map(message => ({
-                [roleKey]: this.scenario.config.rolePlaceholders
-                    ? this.replacePlaceholders(message[roleKey], context, act)
-                    : message[roleKey],
-                [contentKey]: this.replacePlaceholders(message[contentKey], context, act)
+                [this.roleKey]: this.scenario.config.rolePlaceholders
+                    ? this.replacePlaceholders(message[this.roleKey], context, act)
+                    : message[this.roleKey],
+                [this.contentKey]: this.replacePlaceholders(message[this.contentKey], context, act)
             } as ScenarioMessage<RoleKey, ContentKey>)) ?? []
     }
 
@@ -68,6 +71,11 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
         if (!inherited) return chain[0] ?? null
 
         return inherit<ScenarioConfig>(...chain)
+    }
+    
+    public getMessageConfig(act: ActName, messageIndex: number): ScenarioConfig | null {
+        const messagesConfig = this.scenario.acts[act]?.config?.messages as ScenarioConfig
+        return (messagesConfig?.[messageIndex] as ScenarioConfig) ?? null
     }
     
     public inheritConfigs(context?: ScenarioContext, act?: ActName): ScenarioContext {

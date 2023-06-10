@@ -16,6 +16,39 @@ export interface ScenarioConfig {
     [key: string]: ScenarioConfigRecognizedValue | ScenarioConfigRecognizedValue[] | ScenarioConfig
 }
 
+export type ScenarioAction<RoleKey extends string = 'role', ContentKey extends string = 'content'> = (
+    content: string,
+    messageConfig: ScenarioConfig | null,
+    context: ScenarioContext,
+    act: ActName,
+    state: ScenarioState<RoleKey, ContentKey>
+) => ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[] | void | null
+
+export interface HistoryManagerConfig {
+    actions?: Record<string, ScenarioAction>
+    plugins?: Record<string, ScenarioAction>
+}
+
+
+export interface HistoryCostItem {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+}
+
+export interface HistoryCost<Item = HistoryCostItem> {
+    requests: Item[]
+    totalTokens: number
+}
+
+export interface ScenarioState<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
+    scenario: ScenarioData<RoleKey, ContentKey> | null
+    act: ActName | null
+    history: ScenarioMessage<RoleKey, ContentKey>[]
+    context: ScenarioContext
+    cost: HistoryCost
+}
+
 export interface ScenarioContext {
     [key: string]: string | {toString(): string} | ScenarioContext
 }
@@ -166,6 +199,7 @@ export type DeepPartial<T> = T extends object
     ? { [P in keyof T]?: DeepPartial<T[P]> }
     : T
 
+export type extractCostGeneric<Type> = Type extends HistoryCost<infer X> ? X : never
 
 
 

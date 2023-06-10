@@ -29,7 +29,8 @@ client  ← (ScenarioSync | ScenarioAsync) ← Scenario ← ScenarioParser
 ```
 
 ScenarioSync - keeps all in memory, have sync methods, ideally for tools that do not need to store the scenario and history between prompts, like CLI tools\
-ScenarioAsync - designed to work in async environment, like web server, allow to store the scenario and history in DB between calls, have async methods, ideally for api-chatbots
+ScenarioAsync - designed to work in async environment, like web server, allow to store the scenario and history in DB between calls, have 
+async methods, ideally for api-chatbots
 
 ## Syntax
 

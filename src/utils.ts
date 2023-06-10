@@ -106,3 +106,27 @@ export function inherit<T = Record<string, unknown>>(...objects: T[]): T | null 
             return Object.create(proto, Object.getOwnPropertyDescriptors(clone(current)))
         }, null)
 }
+
+export function mergeContexts(a: ScenarioContext, b: ScenarioContext): ScenarioContext {
+    const target = {} as ScenarioContext
+
+    const keys = [...Object.keys(a), ...Object.keys(b)].filter((key, index, array) => array.indexOf(key) === index)
+    keys.forEach((key: keyof ScenarioContext) => {
+        const valueA = a[key]
+        const valueB = b[key]
+        
+        if (valueA === undefined) {
+            target[key] = valueB
+        } else if (valueB === undefined) {
+            target[key] = valueA
+        } else if (Array.isArray(valueA) && Array.isArray(valueB)) {
+            target[key] = [...valueA, ...valueB]
+        } else if (typeof valueA === 'object' && typeof valueB === 'object') {
+            target[key] = mergeContexts(valueA as ScenarioContext, valueB as ScenarioContext)
+        } else {
+            target[key] = valueB
+        }
+    })
+    
+    return target
+}
