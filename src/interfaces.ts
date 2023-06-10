@@ -28,10 +28,11 @@ export type ScenarioAction<RoleKey extends string = 'role', ContentKey extends s
 ) => ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[] | void | null
 
 export type ScenarioPlugin<RoleKey extends string = 'role', ContentKey extends string = 'content'> = (
+    currentMessages: ScenarioMessage<RoleKey, ContentKey>[],
     state: ScenarioState<RoleKey, ContentKey>,
     scenario: Scenario<RoleKey, ContentKey>,
     manager: HistoryManager<RoleKey, ContentKey>
-) => void
+) => ScenarioMessage<RoleKey, ContentKey>[] | void
 
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>

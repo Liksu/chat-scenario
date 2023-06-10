@@ -10,6 +10,7 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
     parsedData = null
     config = {}
 
+    /** @deprecated */
     constructor(scenario?: string, config?: ScenarioParserConfig) {
         if (typeof scenario === 'string') {
             scenario = new ScenarioParser(scenario, config)
@@ -20,6 +21,7 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
         Object.assign(this.config, config, scenario.config)
     }
 
+    /** @deprecated */
     execute(context, act = ScenarioProcessor.defaultAct) {
         Object.assign(this.context, context)
         const messages = this.build(this.context, act)
@@ -33,6 +35,7 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
         return messages
     }
 
+    /** @deprecated */
     start(context) {
         this.clear()
 
@@ -53,16 +56,19 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
         return this.execute(context, this.act)
     }
 
+    /** @deprecated */
     get placeholders() {
         return this.scenario[this.act]?.[ScenarioProcessor.placeholderSymbol] ?? []
     }
 
+    /** @deprecated */
     get actConfig() {
         return this.scenario[this.act]?.[ScenarioProcessor.configSymbol]
             ?? this.scenario[ScenarioProcessor.defaultAct]?.[ScenarioProcessor.configSymbol]
             ?? this.config
     }
 
+    /** @deprecated */
     next(context, returnHistory = false) {
         this.act = this.queue.shift() ?? null
         if (!this.act) return null
@@ -71,28 +77,34 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
         return returnHistory ? this.history : messages
     }
 
+    /** @deprecated */
     get hasNext() {
         return this.queue[0] ?? null
     }
 
+    /** @deprecated */
     get nextPlaceholders() {
         return this.scenario[this.queue[0]]?.[ScenarioProcessor.placeholderSymbol] ?? []
     }
 
+    /** @deprecated */
     get nextConfig() {
         return this.scenario[this.queue[0]]?.[ScenarioProcessor.configSymbol] ?? {}
     }
 
+    /** @deprecated */
     answer(message) {
         this.history.push(message)
     }
 
+    /** @deprecated */
     end() {
         this.act = null
         this.queue = []
         return this.history
     }
 
+    /** @deprecated */
     clear() {
         this.history = []
         this.act = null
@@ -100,6 +112,7 @@ export default class ScenarioProcessor<RoleKey extends string = 'role', ContentK
         this.context = {}
     }
 
+    /** @deprecated */
     readHistory(skipRoles = []) {
         if (!Array.isArray(skipRoles)) skipRoles = [skipRoles]
         const roleKey = this.config.roleKey || 'role'

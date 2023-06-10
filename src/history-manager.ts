@@ -1,4 +1,5 @@
 import {
+    ActData,
     ActName,
     DeepPartial, extractCostGeneric,
     HistoryCost, HistoryCostItem,
@@ -61,21 +62,51 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return this
     }
     
-    public execute(context: ScenarioContext, act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
+    public execute(context?: ScenarioContext | ActName, act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
         if (!this.state || !this.scenario) return null
+        if (typeof context === 'string') {
+            [act, context] = [context, undefined]
+        }
 
-        this.state.act = act ?? this.scenario.defaultAct ?? this.state.scenario?.config.order[0]
+        this.state.act = act ?? this.currentAct
         if (this.state.act == null) return null
         
-        this.state.context = mergeContexts(this.state.context, context)
+        this.state.context = mergeContexts(this.state.context, context ?? {})
         
         const messages = this.buildMessages()
-        if (messages) this.state.history.push(...messages)
+        this.runPlugins(messages)
 
-        this.runPlugins()
+        if (messages) this.state.history.push(...messages)
         return messages
     }
+
+    /**
+     * @deprecated use `next` instead
+     */
+    public start(context?: ScenarioContext) {
+        if (!this.state || !this.scenario) return null
+        
+        this.state.act = this.currentAct
+        if (this.state.act == null) return null
+        
+        return this.execute(context ?? {}, this.state.act)
+    }
     
+    public next(context?: ScenarioContext, returnHistory = false): ScenarioMessage<RoleKey, ContentKey>[] | null {
+        if (!this.state || !this.scenario) return null
+        
+        this.state.act = this.nextAct
+        if (this.state.act == null) return null
+        
+        const messages = this.execute(context ?? {}, this.state.act)
+        return returnHistory ? this.state.history : messages
+    }
+    
+    public addAnswer(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
+        if (!Array.isArray(messages)) messages = [messages]
+        this.state?.history.push(...messages)
+    }
+
     public addCost(cost: HistoryCostItem): number | null {
         if (!this.state) return null
         
@@ -84,11 +115,60 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         
         return this.state.cost.totalTokens
     }
+
+    public get currentAct(): ActName | null {
+        return this.state?.act ?? this.state?.scenario?.config.order[0] ?? this.scenario?.defaultAct ?? null
+    }
     
-    private runPlugins() {
+    public get currentActData(): ActData<RoleKey, ContentKey> | null {
+        return this.getActData(this.currentAct)
+    }
+
+    public get queue(): ActName[] {
+        const act = this.currentAct
+        if (!act) return []
+        
+        const order = this.state?.scenario?.config.order
+        if (!order) return []
+        
+        let index = order.indexOf(act)
+        if (index === -1) return []
+        return order.slice(index + 1)
+    }
+
+    public get hasNext(): boolean {
+        return this.queue.length > 0
+    }
+    
+    public get nextAct(): ActName | null {
+        return this.queue[0] ?? null
+    }
+    
+    public get nextActData(): ActData<RoleKey, ContentKey> | null {
+        return this.getActData(this.nextAct)
+    }
+    
+    public getActData(act: ActName | null): ActData<RoleKey, ContentKey> | null {
+        if (!act) return null
+        return this.state?.scenario?.acts[act] ?? null
+    }
+
+    public printHistory(skipRoles: string | string[] = []): string | null {
+        if (!Array.isArray(skipRoles)) skipRoles = [skipRoles]
+        if (!this.state || !this.scenario) return null
+        const { roleKey, contentKey } = this.scenario
+
+        return this.state.history
+            .filter(message => !skipRoles.includes(message[roleKey]))
+            .map(message => `${message[roleKey]}:\n\t${message[contentKey].replace(/\n/g, '\n\t')}`)
+            .join('\n\n')
+    }
+
+    private runPlugins(messages: ScenarioMessage<RoleKey, ContentKey>[]) {
         this.config.plugins?.forEach(plugin => {
             if (!this.state || !this.scenario) return
-            plugin(this.state, this.scenario, this)
+            const result = plugin(messages, this.state, this.scenario, this)
+            if (result) messages = result
         })
     }
     
@@ -109,6 +189,4 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             })
             .filter(Boolean) as ScenarioMessage<RoleKey, ContentKey>[]
     }
-    
-    // public start(actNumber: number)
 }
