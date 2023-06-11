@@ -210,26 +210,3 @@ export type DeepPartial<T> = T extends object
     : T
 
 export type extractCostGeneric<Type> = Type extends HistoryCost<infer X> ? X : never
-
-
-
-export type OldAct = string
-export type OldScenarioMessage = Record<string, string>
-export type OldScenarioMessages = Array<OldScenarioMessage>
-export type OldScenarioPlaceholders = Array<string>
-export type OldScenarioConfigValue = string | number | boolean | Array<string>
-export interface OldScenarioData {
-    [order: symbol]: Array<string> | OldScenarioActConfig
-    [act: OldAct]: OldScenarioMessages & Record<symbol, OldScenarioPlaceholders>
-}
-export type OldScenarioContextObject = Record<string, string | null>
-export type OldScenarioAction = (content: string, act: OldAct, scenario: OldScenarioData, instance: ScenarioData) => OldScenarioMessage | null | void
-export type OldScenarioActions = Record<string, OldScenarioAction>
-export type OldScenarioGlobalConfig = {
-    roleKey: string
-    contentKey: string
-    join: string
-    comment: string
-    actions: OldScenarioActions
-} & Record<string, OldScenarioConfigValue | OldScenarioActions>
-export type OldScenarioActConfig = Record<string, OldScenarioConfigValue>
