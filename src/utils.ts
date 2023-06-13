@@ -4,7 +4,7 @@ import {
     ScenarioConfigRecognizedValue,
     ScenarioContext,
     ScenarioParserConfig
-} from './interfaces'
+} from './interfaces.js'
 
 export const COMA_REGEXP = /,(?=(?:[^"]|"[^"]*")*$)/
 export const CONFIG_REGEXP = /^%\s*(.*)\s*\n?/gm

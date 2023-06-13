@@ -7,7 +7,7 @@ import {
     ScenarioData,
     ScenarioMessage,
     ScenarioParserConfig
-} from './interfaces'
+} from './interfaces.js'
 import {
     ACT_BRACKETS_REGEXP,
     BLOCK_SPLITTER_REGEXP,
@@ -22,7 +22,7 @@ import {
     mergeConfigs,
     PLACEHOLDERS_REGEXP,
     restoreType,
-} from './utils'
+} from './utils.js'
 
 export default class ScenarioParser<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     public static config: ScenarioParserConfig = {

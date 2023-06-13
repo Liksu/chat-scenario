@@ -2,14 +2,14 @@ import {
     ActData,
     ActName,
     DeepPartial,
-    ScenarioConfig, ScenarioConfigRecognizedValue,
+    ScenarioConfig,
     ScenarioContext,
     ScenarioData,
     ScenarioMessage,
     ScenarioParserConfig
-} from './interfaces'
-import ScenarioParser from './parser'
-import { deepGet, inherit, PLACEHOLDERS_REGEXP } from './utils'
+} from './interfaces.js'
+import ScenarioParser from './parser.js'
+import { deepGet, inherit, PLACEHOLDERS_REGEXP } from './utils.js'
 
 export default class Scenario<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     public scenario: ScenarioData<RoleKey, ContentKey>

@@ -1,15 +1,19 @@
 import {
     ActData,
     ActName,
-    DeepPartial, extractCostGeneric,
-    HistoryCost, HistoryCostItem,
-    HistoryManagerConfig, ScenarioAction,
-    ScenarioConfig, ScenarioContext,
-    ScenarioData, ScenarioMessage, ScenarioParserConfig, ScenarioPlugin,
+    DeepPartial,
+    HistoryCost,
+    HistoryCostItem,
+    HistoryManagerConfig,
+    ScenarioAction,
+    ScenarioContext,
+    ScenarioData,
+    ScenarioMessage,
+    ScenarioParserConfig,
     ScenarioState
-} from './interfaces'
-import Scenario from './scenario'
-import { mergeContexts } from './utils'
+} from './interfaces.js'
+import Scenario from './scenario.js'
+import { mergeContexts } from './utils.js'
 
 export default class HistoryManager<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     public config: HistoryManagerConfig<RoleKey, ContentKey>

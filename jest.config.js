@@ -1,6 +1,15 @@
 export default {
     roots: ['<rootDir>/test'],
+    global: {
+        'ts-jest': {
+            useESM: true,
+        }
+    },
+    moduleNameMapper: {
+        '(.+)\\.js': '$1'
+    },
+    extensionsToTreatAsEsm: ['.ts'],
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.[tj]sx?$': 'ts-jest',
     },
 };

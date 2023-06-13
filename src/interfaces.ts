@@ -1,5 +1,5 @@
-import Scenario from './scenario'
-import HistoryManager from './history-manager'
+import Scenario from './scenario.js'
+import HistoryManager from './history-manager.js'
 
 /**
  * Make the parameters more explicit
