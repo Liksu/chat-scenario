@@ -1,6 +1,6 @@
 .idea
 node_modules
-scenario.tmbundle
 test.tmbundle
 coverage
+
 dist

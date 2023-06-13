@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>fileTypes</key>
+        <array>
+            <string>scenario</string>
+        </array>
+        <key>name</key>
+        <string>Chat Scenario</string>
+        <key>patterns</key>
+        <array>
+            <dict>
+                <!-- comment -->
+                <key>match</key>
+                <string>(^\s*#.*$)</string>
+                <key>name</key>
+                <string>comment.line.scenario</string>
+            </dict>
+            <dict>
+                <!-- comment act -->
+                <key>match</key>
+                <string>(^\s*\[#.*\].*$)</string>
+                <key>name</key>
+                <string>comment.line.scenario</string>
+            </dict>
+            <dict>
+                <!-- plugin function -->
+                <key>match</key>
+                <string>(@[A-Za-z]\w*\([^)]+\))</string>
+                <key>name</key>
+                <string>markup.deleted.scenario</string>
+            </dict>
+            <dict>
+                <!-- role -->
+                <key>match</key>
+                <string>(^\s*[\w -]+:\s*$)</string>
+                <key>name</key>
+                <string>constant.numeric.scenario</string>
+            </dict>
+            <dict>
+                <!-- act -->
+                <key>match</key>
+                <string>(^\[.*\])</string>
+                <key>name</key>
+                <string>markup.inserted.scenario</string>
+            </dict>
+            <dict>
+                <!-- placeholder -->
+                <key>match</key>
+                <string>(\{.+\})</string>
+                <key>name</key>
+                <string>string.scenario</string>
+            </dict>
+            <dict>
+                <!-- scenario config -->
+                <key>match</key>
+                <string>^\s*%\s*(use)\s.+$</string>
+                <key>name</key>
+                <string>entity.name.tag.scenario</string>
+            </dict>
+            <dict>
+                <!-- scenario config -->
+                <key>match</key>
+                <string>^\s*%\s*scenario\.\w.*\s*=.*$</string>
+                <key>name</key>
+                <string>entity.name.tag.scenario</string>
+            </dict>
+            <dict>
+                <!-- parser config -->
+                <key>match</key>
+                <string>^\s*%\s*(parse)\s.+$</string>
+                <key>name</key>
+                <string>meta.tag.scenario</string>
+            </dict>
+            <dict>
+                <!-- parser config -->
+                <key>match</key>
+                <string>^\s*%\s*parser\.\w.*\s*=.*$</string>
+                <key>name</key>
+                <string>meta.tag.scenario</string>
+            </dict>
+            <dict>
+                <!-- act config -->
+                <key>match</key>
+                <string>(^\s*%.+=.+$)</string>
+                <key>name</key>
+                <string>constant.language.scenario</string>
+            </dict>
+            <dict>
+                <!-- directive config -->
+                <key>match</key>
+                <string>(^\s*%\s*[\w.-]+\s*$)</string>
+                <key>name</key>
+                <string>constant.language.scenario</string>
+            </dict>
+            <dict>
+                <!-- multiline splitter -->
+                <key>match</key>
+                <string>(\\\s*$)</string>
+                <key>name</key>
+                <string>keyword.operator.scenario</string>
+            </dict>
+        </array>
+        <key>scopeName</key>
+        <string>source.scenario</string>
+        <key>uuid</key>
+        <string>fccb4395-afcc-4458-7c54-43aa0a380446</string>
+    </dict>
+</plist>
