@@ -1,3 +1,3 @@
-export * from './parser'
-export * from './scenario'
-export * from './history-manager'
+export { default as ScenarioParser } from './parser'
+export { default as Scenario } from './scenario'
+export { default as HistoryManager } from './history-manager'

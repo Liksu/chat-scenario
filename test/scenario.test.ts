@@ -1,4 +1,4 @@
-import Scenario from '../src/scenario'
+import { Scenario } from '../src'
 import { colorsScenarioFullMap, colorsScenarioMessagesMap, colorsScenarioReference } from './colors.reference'
 import { readFileSync } from 'fs'
 

@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs'
-import ScenarioParser from '../src/parser'
+import { ScenarioParser } from '../src'
 import { colorsScenarioReference } from './colors.reference'
 import chatScenarioReference from './chat.reference'
 import { ScenarioParserConfig } from '../src/interfaces'
