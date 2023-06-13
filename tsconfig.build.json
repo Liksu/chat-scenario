@@ -2,8 +2,10 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
-    "outDir": "dist",
-    "rootDir": "./src/",
-    "outFile": "./dist/index.js"
-  }
+    "sourceRoot": "./src/",
+    "sourceMap": true
+  },
+  "exclude": [
+    "./test/*",
+  ]
 }

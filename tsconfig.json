@@ -3,5 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "sourceRoot": "./src",
+    "sourceMap": true
   }
 }

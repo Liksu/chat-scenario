@@ -1,2 +1,5 @@
 src
 test
+node_modules
+scenario.tmbundle
+test.tmbundle
