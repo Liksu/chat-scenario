@@ -34,14 +34,13 @@ export type ScenarioHook<RoleKey extends string = 'role', ContentKey extends str
     manager: HistoryManager<RoleKey, ContentKey>
 ) => ScenarioMessage<RoleKey, ContentKey>[] | void
 
+export type HistoryManagerHooks = 'afterInit' | 'afterLoad' | 'beforeSave'
+    | 'beforeClearContext' | 'afterBuild' | 'beforeRequest' | 'beforePrintHistory' | 'beforeAddAnswer'
+
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
-    hooks?: {
-        afterBuild?: ScenarioHook<RoleKey, ContentKey>[],
-        beforeRequest?: ScenarioHook<RoleKey, ContentKey>[],
-    }
+    hooks?: Record<HistoryManagerHooks, ScenarioHook<RoleKey, ContentKey>[]>
 }
-
 
 export interface HistoryCostItem {
     prompt_tokens: number

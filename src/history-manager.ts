@@ -5,6 +5,7 @@ import {
     HistoryCost,
     HistoryCostItem,
     HistoryManagerConfig,
+    HistoryManagerHooks,
     ScenarioAction,
     ScenarioContext,
     ScenarioData,
@@ -38,15 +39,19 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             } as HistoryCost,
         }
         
+        this.runHooks('afterInit')
         return this
     }
     
     public load(scenario: ScenarioState<RoleKey, ContentKey>) {
         this.scenario = new Scenario<RoleKey, ContentKey>(scenario.scenario as ScenarioData<RoleKey, ContentKey>)
         this.state = scenario
+        this.runHooks('afterLoad')
+        return this
     }
     
     public save(): ScenarioState<RoleKey, ContentKey> | null {
+        this.runHooks('beforeSave')
         return this.state
     }
 
@@ -61,6 +66,8 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
      * @returns {HistoryManager}
      */
     public clearContext(): HistoryManager<RoleKey, ContentKey> {
+        this.runHooks('beforeClearContext')
+        
         if (this.state) {
             this.state.context = {}
         }
@@ -80,7 +87,6 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state.context = mergeContexts(this.state.context, context ?? {})
         
         const messages = this.buildMessages()
-        this.runHooks('afterBuild', messages)
 
         if (messages) this.state.history.push(...messages)
         return messages
@@ -117,6 +123,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     
     public addAnswer(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
         if (!Array.isArray(messages)) messages = [messages]
+        this.runHooks('beforeAddAnswer', messages)
         this.state?.history.push(...messages)
     }
 
@@ -171,13 +178,15 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         if (!this.state || !this.scenario) return null
         const { roleKey, contentKey } = this.scenario
 
+        this.runHooks('beforePrintHistory')
+        
         return this.state.history
             .filter(message => !skipRoles.includes(message[roleKey]))
             .map(message => `${message[roleKey]}:\n\t${message[contentKey].replace(/\n/g, '\n\t')}`)
             .join('\n\n')
     }
 
-    private runHooks(stage: keyof Required<HistoryManagerConfig>['hooks'], messages: ScenarioMessage<RoleKey, ContentKey>[]): ScenarioMessage<RoleKey, ContentKey>[] {
+    private runHooks(stage: HistoryManagerHooks, messages: ScenarioMessage<RoleKey, ContentKey>[] = this.state?.history || []): ScenarioMessage<RoleKey, ContentKey>[] {
         return this.config.hooks?.[stage]?.reduce((messages, hook) => {
             if (!this.state || !this.scenario) return messages
             return hook(messages, this.state, this.scenario, this) || messages
@@ -192,7 +201,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         
         const { roleKey, contentKey } = this.scenario
         
-        return this.scenario.build(this.state.context, this.state.act)
+        const messages = this.scenario.build(this.state.context, this.state.act)
             .flatMap((message, index) => {
                 if (!this.state?.act) return null
                 const action = this.config.actions?.[message[roleKey]] as ScenarioAction<RoleKey, ContentKey>
@@ -203,5 +212,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
                 return action ?? message
             })
             .filter(Boolean) as ScenarioMessage<RoleKey, ContentKey>[]
+
+        return this.runHooks('afterBuild', messages)
     }
 }
