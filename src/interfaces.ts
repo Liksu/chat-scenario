@@ -40,6 +40,8 @@ export type HistoryManagerHooks = 'afterInit' | 'afterLoad' | 'beforeSave'
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
     hooks?: Record<HistoryManagerHooks, ScenarioHook<RoleKey, ContentKey>[]>
+    fullLog?: boolean
+    costOnly?: boolean
 }
 
 export interface HistoryCostItem {
@@ -53,12 +55,21 @@ export interface HistoryCost<Item = HistoryCostItem> {
     totalTokens: number
 }
 
+export interface ScenarioInteractionLogItem {
+    datetime: number
+    request: unknown,
+    response: unknown,
+}
+
+export type ScenarioInteractionLog = ScenarioInteractionLogItem[]
+
 export interface ScenarioState<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     scenario: ScenarioData<RoleKey, ContentKey> | null
     act: ActName | null
     history: ScenarioMessage<RoleKey, ContentKey>[]
     context: ScenarioContext
-    cost: HistoryCost
+    log?: ScenarioInteractionLog
+    cost?: HistoryCost
 }
 
 export interface ScenarioContext {

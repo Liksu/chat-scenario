@@ -2,7 +2,6 @@ import {
     ActData,
     ActName,
     DeepPartial,
-    HistoryCost,
     HistoryCostItem,
     HistoryManagerConfig,
     HistoryManagerHooks,
@@ -23,7 +22,10 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     public scenario: Scenario<RoleKey, ContentKey> | null = null
 
     constructor(config?: HistoryManagerConfig<RoleKey, ContentKey>) {
-        this.config = config ?? {}
+        this.config = Object.assign(
+            {fullLog: false, costOnly: false},
+            config ?? {}
+        )
     }
     
     public init(scenario: string | ScenarioData<RoleKey, ContentKey>, parserConfig?: DeepPartial<ScenarioParserConfig>) {
@@ -31,12 +33,19 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state = {
             scenario: this.scenario.scenario,
             act: null,
-            history: [],
-            context: {},
-            cost: {
+            history: [] as ScenarioMessage<RoleKey, ContentKey>[],
+            context: {} as ScenarioContext,
+        }
+
+        if (this.config.fullLog) {
+            this.state.log = []
+        }
+
+        if (this.config.costOnly) {
+            this.state.cost = {
                 requests: [],
                 totalTokens: 0,
-            } as HistoryCost,
+            }
         }
         
         this.runHooks('afterInit')
@@ -129,11 +138,24 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
 
     public addCost(cost: HistoryCostItem): number | null {
         if (!this.state) return null
+        if (!this.config.costOnly) return null
+        if (!this.state.cost) this.state.cost = {requests: [], totalTokens: 0}
         
         this.state.cost.requests.push(cost)
         this.state.cost.totalTokens += cost.total_tokens
         
         return this.state.cost.totalTokens
+    }
+    
+    public log(request: unknown, response: unknown) {
+        if (!this.state || !this.config.fullLog) return
+        if (!this.state.log) this.state.log = []
+        
+        this.state.log.push({
+            datetime: Date.now(),
+            request,
+            response,
+        })
     }
 
     public get currentAct(): ActName | null {
