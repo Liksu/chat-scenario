@@ -28,8 +28,8 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         )
     }
     
-    public init(scenario: string | ScenarioData<RoleKey, ContentKey>, parserConfig?: DeepPartial<ScenarioParserConfig>) {
-        this.scenario = new Scenario<RoleKey, ContentKey>(scenario, parserConfig)
+    public init(scenario: string | ScenarioData<RoleKey, ContentKey> | Scenario<RoleKey, ContentKey>, parserConfig?: DeepPartial<ScenarioParserConfig>) {
+        this.scenario = scenario instanceof Scenario ? scenario : new Scenario<RoleKey, ContentKey>(scenario, parserConfig)
         this.state = {
             scenario: this.scenario.scenario,
             act: null,
