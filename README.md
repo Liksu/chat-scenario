@@ -1,6 +1,6 @@
 # Chat Scenario Processor
 
-Chat Scenario Processor will help you to create interactive conversations based on predefined scenarios.
+Chat Scenario Processor will help you to create interactive conversations based on predefined easy-written text scripts (scenarios).
 It's perfect for chatbots, text-based games, or any project that involves sequential, role-based conversations.
 Especially for OpenAI Chat API.
 
@@ -10,6 +10,8 @@ Especially for OpenAI Chat API.
 - Easily manage conversation flow with a simple API
 - Replace placeholders with dynamic context data
 - Built-in support for comments and act descriptions
+- Flexible configuration and parsing options
+- Cost calculation support
 
 ## Installation
 
@@ -21,18 +23,28 @@ npm install chat-scenario
 
 ## Structure
 
+The library consists of 3 main parts:
+
+**ScenarioParser** — parses the scenario text and returns the ScenarioData object, it contains all information extracted from text.
+
+**Scenario** — contains the ScenarioData object and provides methods to work with it, especially to build Act's message sequence using the passed context.
+
+**HistoryManager** — designed to manage the conversation flow providing the storable state, that contains the scenario, context and history. And methods to work with it. Also, you can fonfigure the hooks to be called on a different steps of the conversation processing.
+
+Schematically it looks like this:
 ```text
-works with:
-prompts       ←      history      ←        scenario    ←    text
-client  ← (ScenarioSync | ScenarioAsync) ← Scenario ← ScenarioParser
-           + plugins - should depends on the scenario config
+prompts ↔ ( history ← scenario ← text )
 ```
 
-ScenarioSync - keeps all in memory, have sync methods, ideally for tools that do not need to store the scenario and history between prompts, like CLI tools\
-ScenarioAsync - designed to work in async environment, like web server, allow to store the scenario and history in DB between calls, have 
-async methods, ideally for api-chatbots
+Where you should care about the prompts processing only.\
+From the code perspective, your entry point is the HistoryManager, that calls under the hood the Scenario and ScenarioParser:\
 
-## Syntax
+```text
+client  ←  HistoryManager ← Scenario ← ScenarioParser
+           + hooks - should depends on the scenario config
+```
+
+## Scenario Syntax
 
 `#` - comment\
 `[Act name]` - act name\
@@ -70,12 +82,6 @@ We just need to create a middleware between the user and the assistant.\
 Let's suppose that we have `input()` and `output()` functions to communicate with the user, and `openAIChatAssistant()` to communicate with the assistant.
 
 ### Implementation
-
-Import the Scenario class:
-
-```javascript
-import Scenario from 'chat-scenario'
-```
 
 Create a scenario text file, specifying roles, acts, and messages. Use placeholders to insert dynamic content:
 
@@ -123,11 +129,13 @@ user:
     Let it be something from {area} area
 ```
 
-Initialize the Scenario class with this text, and ask assistant for the first prompt:
+Initialize the HistoryManager class with this text, and ask assistant for the first prompt:
 
 ```javascript
-const chatScenario = new Scenario(scenarioText)
-const startMessages = chatScenario.start()
+import { HistoryManager } from 'chat-scenario'
+
+const chat = new HistoryManager().init(scenarioText)
+const startMessages = chat.start()
 ```
 
 Now the `startMessages` contains the first act of the conversation, as an array of messages:
@@ -156,7 +164,7 @@ Then, we can pass this messages to the assistant and get the response:
 const namePrompt = await openAIChatAssistant(startMessages)
 
 // store the response in the scenario
-chatScenario.answer(namePrompt)
+chat.addAnswer(namePrompt)
 
 // show it to the user
 output(namePrompt.content)
@@ -176,11 +184,11 @@ Get the user input and continue the scenario for the "Greetings" act:
 ```javascript
 const name = await input()
 
-let history = chatScenario.next({name}, true)
+let history = chat.next({name})
 ```
 
 To keep the context, we need to provide the assistant with the whole conversation,
-so here we use the `true` flag to get the full `chatScenario.history` instead of only act's messages.
+so here we use the `true` flag to get the full `chat.state.history` instead of only act's messages.
 
 Now, the history contains new messages:
 
@@ -209,7 +217,7 @@ And again, we'll send this history to the assistant and get the response. And so
 const colorPrompt = await openAIChatAssistant(history)
 
 // store the response in the scenario
-chatScenario.answer(colorPrompt)
+chat.addAnswer(colorPrompt)
 
 // show it to the user
 output(colorPrompt.content)
@@ -218,38 +226,35 @@ output(colorPrompt.content)
 const color = await input()
 
 // continue the scenario for the "Color choice" act
-history = chatScenario.next({color}, true)
+history = chat.next({color})
 
 // get the response from the assistant and show it to the user
 const colorAnswer = await openAIChatAssistant(history)
-chatScenario.answer(colorAnswer)
+chat.addAnswer(colorAnswer)
 output(colorAnswer.content)
 
 // proceed to the next "Area choice" act
-history = chatScenario.next({}, true)
+history = chat.next({})
 const areaPrompt = await openAIChatAssistant(history)
-chatScenario.answer(areaPrompt)
+chat.addAnswer(areaPrompt)
 output(areaPrompt.content)
 
 // get the user input for the area and finalize the scenario
 const area = await input()
-history = chatScenario.next({area}, true)
+history = chat.next({area})
 const finalAnswer = await openAIChatAssistant(history)
-chatScenario.answer(finalAnswer)
+chat.addAnswer(finalAnswer)
 output(finalAnswer.content)
-
-// optional, end the scenario
-chatScenario.end()
 ```
 
-You can loop iterations over the scenario, until the `chatScenario.next()` returns `null`.
+You can loop iterations over the scenario, until the `chat.next()` returns `null`.
 
 ### The Result
 
 After the scenario is finished, you can get the full conversation history:
 
 ```javascript
-const history = chatScenario.history
+const history = chat.state.history
 ```
 
 And it will contain this array:
@@ -325,15 +330,21 @@ scenario.start()
 let userInput = {}
 let history = []
 
-while (history = scenario.next(userInput, true)) {
+while (history = scenario.next(userInput)) {
     if (!history) break
 
     const answer = await assistant.ask(history)
-    scenario.answer(answer)
+    scenario.addAnswer(answer)
     output(answer.content)
 
-    if (scenario.hasNext && scenario.nextPlaceholders.length > 0) {
+    if (scenario.nextActData?.hasPlaceholders) {
         userInput = await input()
     }
 }
 ```
+
+### Will be improved
+
+- Tests coverage
+- Documentation
+- Examples

@@ -21,8 +21,8 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     public state: ScenarioState<RoleKey, ContentKey> | null = null
     public scenario: Scenario<RoleKey, ContentKey> | null = null
 
-    constructor(config: HistoryManagerConfig<RoleKey, ContentKey>) {
-        this.config = config
+    constructor(config?: HistoryManagerConfig<RoleKey, ContentKey>) {
+        this.config = config ?? {}
     }
     
     public init(scenario: string | ScenarioData<RoleKey, ContentKey>, parserConfig?: DeepPartial<ScenarioParserConfig>) {
@@ -37,6 +37,8 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
                 totalTokens: 0,
             } as HistoryCost,
         }
+        
+        return this
     }
     
     public load(scenario: ScenarioState<RoleKey, ContentKey>) {
@@ -78,7 +80,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state.context = mergeContexts(this.state.context, context ?? {})
         
         const messages = this.buildMessages()
-        this.runPlugins(messages)
+        this.runHooks('afterBuild', messages)
 
         if (messages) this.state.history.push(...messages)
         return messages
@@ -104,6 +106,13 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         
         const messages = this.execute(context ?? {}, this.state.act)
         return returnHistory ? this.state.history : messages
+    }
+    
+    public getRequests(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
+        const requestAct = act ?? this.currentAct
+        if (!this.state || !this.scenario || !requestAct) return null
+
+        return this.runHooks('beforeRequest', this.state.history)
     }
     
     public addAnswer(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
@@ -168,14 +177,16 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             .join('\n\n')
     }
 
-    private runPlugins(messages: ScenarioMessage<RoleKey, ContentKey>[]) {
-        this.config.plugins?.forEach(plugin => {
-            if (!this.state || !this.scenario) return
-            const result = plugin(messages, this.state, this.scenario, this)
-            if (result) messages = result
-        })
+    private runHooks(stage: keyof Required<HistoryManagerConfig>['hooks'], messages: ScenarioMessage<RoleKey, ContentKey>[]): ScenarioMessage<RoleKey, ContentKey>[] {
+        return this.config.hooks?.[stage]?.reduce((messages, hook) => {
+            if (!this.state || !this.scenario) return messages
+            return hook(messages, this.state, this.scenario, this) || messages
+        }, messages) ?? messages
     }
-    
+
+    /**
+     * Part of this.execute, builds the messages from the current act
+     */
     private buildMessages(): ScenarioMessage<RoleKey, ContentKey>[] {
         if (!this.state || !this.scenario || !this.state.act) return []
         

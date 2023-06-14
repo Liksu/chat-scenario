@@ -16,7 +16,7 @@ export const DEFAULT_CONTENT_REGEXP = /^(.+?)\n\s*\n\s*\[.*?]\s*\n/s
 export const CONFIG_LINE_REGEXP = /^\s*(?<key>[^=]*?)\s*=\s*(?<value>.*?)\s*$/
 export const PLACEHOLDERS_REGEXP = /\{([^{}]+?)}/g
 export const CONFIG_DIRECTIVE_REGEXP = /^[\w.-]+$/
-export const PLUGIN_FUNCTION_REGEXP = /@(?<name>[a-z]\w*)\((?<params>[^)]+)\)/i
+export const HOOK_FUNCTION_REGEXP = /@(?<name>[a-z]\w*)\((?<params>[^)]+)\)/i
 
 export const trySpecial = (value: string): string | null => {
     if (value === '\\n') return '\n'
