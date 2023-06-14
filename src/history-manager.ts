@@ -108,7 +108,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return returnHistory ? this.state.history : messages
     }
     
-    public getRequests(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
+    public getRequest(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
         const requestAct = act ?? this.currentAct
         if (!this.state || !this.scenario || !requestAct) return null
 
