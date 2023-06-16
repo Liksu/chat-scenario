@@ -116,7 +116,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     public next(context?: ScenarioContext, returnHistory = false): ScenarioMessage<RoleKey, ContentKey>[] | null {
         if (!this.state || !this.scenario) return null
         
-        this.state.act = this.nextAct
+        this.state.act = this.queue.shift() ?? null
         if (this.state.act == null) return null
         
         const messages = this.execute(context ?? {}, this.state.act)
