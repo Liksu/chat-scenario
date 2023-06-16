@@ -40,7 +40,7 @@ export type HistoryManagerHooks = 'afterInit' | 'afterLoad' | 'beforeSave'
 
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
-    hooks?: Record<HistoryManagerHooks, ScenarioHook<RoleKey, ContentKey>[]>
+    hooks?: Partial<Record<HistoryManagerHooks, ScenarioHook<RoleKey, ContentKey>[]>>
     fullLog?: boolean
     costOnly?: boolean
 }

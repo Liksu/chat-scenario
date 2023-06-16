@@ -210,7 +210,10 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             .join('\n\n')
     }
 
-    private runHooks(stage: HistoryManagerHooks, messages: ScenarioMessage<RoleKey, ContentKey>[] = this.state?.history || []): ScenarioMessage<RoleKey, ContentKey>[] {
+    private runHooks(
+        stage: HistoryManagerHooks,
+        messages: ScenarioMessage<RoleKey, ContentKey>[] = this.state?.history || []
+    ): ScenarioMessage<RoleKey, ContentKey>[] {
         return this.config.hooks?.[stage]?.reduce((messages, hook) => {
             if (!this.state || !this.scenario) return messages
             return hook(messages, this.state, this.scenario, this) || messages
