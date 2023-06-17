@@ -35,8 +35,9 @@ export type ScenarioHook<RoleKey extends string = 'role', ContentKey extends str
 ) => ScenarioMessage<RoleKey, ContentKey>[] | ScenarioContext[] | void
 
 export type HistoryManagerHookName = 'afterInit' | 'afterLoad' | 'beforeSave'
-    | 'beforeClearContext' | 'beforeNext' | 'afterBuild' | 'beforeRequest'
-    | 'beforePrintHistory' | 'beforeAddAnswer' | 'beforeStoreMessage' | 'getActQueue'
+    | 'beforeClearContext' | 'beforeNext' | 'afterBuild' | 'beforeGetMessages'
+    | 'beforePrintHistory' | 'beforePushMessage' | 'beforePushContext' | 'getActQueue'
+    | 'beforeGetContexts'
 
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>

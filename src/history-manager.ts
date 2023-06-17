@@ -129,26 +129,26 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return returnHistory ? this.state.history : messages
     }
     
-    public getRequest(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
+    public getMessages(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {
         const requestAct = act ?? this.currentAct
         if (!this.state || !this.scenario || !requestAct) return null
 
-        return this.runHooks('beforeRequest', this.state.history)
+        return this.runHooks('beforeGetMessages', this.state.history)
     }
     
-    public getHistory(): ScenarioContext[] | null {
-        return this.state?.contexts ?? null
+    public getContexts(): ScenarioContext[] | null {
+        return this.runHooks<ScenarioContext>('beforeGetContexts',this.state?.contexts)
     } 
     
-    public addAnswer(context: ScenarioContext | ScenarioContext[]) {
+    public pushContext(context: ScenarioContext | ScenarioContext[]) {
         if (!Array.isArray(context)) context = [context]
-        this.runHooks<ScenarioContext>('beforeAddAnswer', context)
+        this.runHooks<ScenarioContext>('beforePushContext', context)
         this.state?.contexts.push(...context)
     }
     
-    public storeMessage(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
+    public pushMessage(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
         if (!Array.isArray(messages)) messages = [messages]
-        this.runHooks('beforeStoreMessage', messages)
+        this.runHooks('beforePushMessage', messages)
         this.state?.history.push(...messages)
     }
 
