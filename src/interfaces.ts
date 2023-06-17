@@ -28,19 +28,19 @@ export type ScenarioAction<RoleKey extends string = 'role', ContentKey extends s
 ) => ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[] | void | null
 
 export type ScenarioHook<RoleKey extends string = 'role', ContentKey extends string = 'content'> = (
-    currentMessages: ScenarioMessage<RoleKey, ContentKey>[],
+    input: ScenarioMessage<RoleKey, ContentKey>[] | ScenarioContext[] | unknown,
     state: ScenarioState<RoleKey, ContentKey>,
     scenario: Scenario<RoleKey, ContentKey>,
     manager: HistoryManager<RoleKey, ContentKey>
-) => ScenarioMessage<RoleKey, ContentKey>[] | void
+) => ScenarioMessage<RoleKey, ContentKey>[] | ScenarioContext[] | void
 
-export type HistoryManagerHooks = 'afterInit' | 'afterLoad' | 'beforeSave'
+export type HistoryManagerHookName = 'afterInit' | 'afterLoad' | 'beforeSave'
     | 'beforeClearContext' | 'beforeNext' | 'afterBuild' | 'beforeRequest'
-    | 'beforePrintHistory' | 'beforeAddAnswer'
+    | 'beforePrintHistory' | 'beforeAddAnswer' | 'beforeStoreMessage' | 'getActQueue'
 
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
-    hooks?: Partial<Record<HistoryManagerHooks, ScenarioHook<RoleKey, ContentKey>[]>>
+    hooks?: Partial<Record<HistoryManagerHookName, ScenarioHook<RoleKey, ContentKey>[]>>
     fullLog?: boolean
     costOnly?: boolean
 }
@@ -67,7 +67,26 @@ export type ScenarioInteractionLog = ScenarioInteractionLogItem[]
 export interface ScenarioState<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     scenario: ScenarioData<RoleKey, ContentKey> | null
     act: ActName | null
+    /**
+     * The main history of processed messages
+     * The result of scenario processing
+     */
     history: ScenarioMessage<RoleKey, ContentKey>[]
+    /**
+     * The history of contexts that is useful to represent dialog to the user:
+     * user input -> assistant response -> user input -> assistant response -> ...
+     * as user context made from placeholders and assistant synthetic context made from its answer
+     */
+    contexts: ScenarioContext[]
+    /**
+     * List of the next acts to process
+     */
+    queue: ActName[] | null
+    /**
+     * Global context that updates on each execution of the scenario and stores as much data as possible
+     * It is used to build each act, so if you need to build only with the act context,
+     * you can use the `clearContext()` method before the `execute()` or `next()` methods
+     */
     context: ScenarioContext
     log?: ScenarioInteractionLog
     cost?: HistoryCost

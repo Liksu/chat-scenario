@@ -4,7 +4,7 @@ import {
     DeepPartial,
     HistoryCostItem,
     HistoryManagerConfig,
-    HistoryManagerHooks,
+    HistoryManagerHookName,
     ScenarioAction,
     ScenarioContext,
     ScenarioData,
@@ -34,6 +34,8 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             scenario: this.scenario.scenario,
             act: null,
             history: [] as ScenarioMessage<RoleKey, ContentKey>[],
+            contexts: [] as ScenarioContext[],
+            queue: [...(this.scenario.scenario.config.order ?? [])],
             context: {} as ScenarioContext,
         }
 
@@ -48,19 +50,19 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             }
         }
         
-        this.runHooks('afterInit')
+        this.runHooks('afterInit', this.state.history)
         return this
     }
     
     public load(scenario: ScenarioState<RoleKey, ContentKey>) {
         this.scenario = new Scenario<RoleKey, ContentKey>(scenario.scenario as ScenarioData<RoleKey, ContentKey>)
         this.state = scenario
-        this.runHooks('afterLoad')
+        this.runHooks('afterLoad', this.state.history)
         return this
     }
     
     public save(): ScenarioState<RoleKey, ContentKey> | null {
-        this.runHooks('beforeSave')
+        this.runHooks('beforeSave', this.state?.history)
         return this.state
     }
 
@@ -89,15 +91,17 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         if (typeof context === 'string') {
             [act, context] = [context, undefined]
         }
+        context ??= {}
 
         this.state.act = act ?? this.currentAct
         if (this.state.act == null) return null
         
-        this.state.context = mergeContexts(this.state.context, context ?? {})
+        this.state.context = mergeContexts(this.state.context, context)
+        this.state.contexts.push(context)
         
         const messages = this.buildMessages()
-
         if (messages) this.state.history.push(...messages)
+        
         return messages
     }
 
@@ -116,9 +120,9 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     public next(context?: ScenarioContext, returnHistory = false): ScenarioMessage<RoleKey, ContentKey>[] | null {
         if (!this.state || !this.scenario) return null
 
-        this.runHooks('beforeNext')
+        this.runHooks('beforeNext', this.state.history)
 
-        this.state.act = this.queue.shift() ?? null
+        this.state.act = this.state.queue?.shift() ?? null
         if (this.state.act == null) return null
         
         const messages = this.execute(context ?? {}, this.state.act)
@@ -132,9 +136,19 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return this.runHooks('beforeRequest', this.state.history)
     }
     
-    public addAnswer(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
+    public getHistory(): ScenarioContext[] | null {
+        return this.state?.contexts ?? null
+    } 
+    
+    public addAnswer(context: ScenarioContext | ScenarioContext[]) {
+        if (!Array.isArray(context)) context = [context]
+        this.runHooks<ScenarioContext>('beforeAddAnswer', context)
+        this.state?.contexts.push(...context)
+    }
+    
+    public storeMessage(messages: ScenarioMessage<RoleKey, ContentKey> | ScenarioMessage<RoleKey, ContentKey>[]) {
         if (!Array.isArray(messages)) messages = [messages]
-        this.runHooks('beforeAddAnswer', messages)
+        this.runHooks('beforeStoreMessage', messages)
         this.state?.history.push(...messages)
     }
 
@@ -168,7 +182,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return this.getActData(this.currentAct)
     }
 
-    public get queue(): ActName[] {
+    public getQueue(): ActName[] {
         const act = this.currentAct
         if (!act) return []
         
@@ -181,11 +195,15 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     }
 
     public get hasNext(): boolean {
-        return this.queue.length > 0
+        if (!this.state?.queue) return false
+        const queue = this.runHooks<ActName>('getActQueue', this.state.queue)
+        return queue.length > 0
     }
     
     public get nextAct(): ActName | null {
-        return this.queue[0] ?? null
+        if (!this.state?.queue) return null
+        const queue = this.runHooks<ActName>('getActQueue', this.state.queue)
+        return queue[0] ?? null
     }
     
     public get nextActData(): ActData<RoleKey, ContentKey> | null {
@@ -202,7 +220,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         if (!this.state || !this.scenario) return null
         const { roleKey, contentKey } = this.scenario
 
-        this.runHooks('beforePrintHistory')
+        this.runHooks('beforePrintHistory', this.state.history)
         
         return this.state.history
             .filter(message => !skipRoles.includes(message[roleKey]))
@@ -210,14 +228,14 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             .join('\n\n')
     }
 
-    private runHooks(
-        stage: HistoryManagerHooks,
-        messages: ScenarioMessage<RoleKey, ContentKey>[] = this.state?.history || []
-    ): ScenarioMessage<RoleKey, ContentKey>[] {
-        return this.config.hooks?.[stage]?.reduce((messages, hook) => {
-            if (!this.state || !this.scenario) return messages
-            return hook(messages, this.state, this.scenario, this) || messages
-        }, messages) ?? messages
+    private runHooks<Item = ScenarioMessage<RoleKey, ContentKey>>(
+        stage: HistoryManagerHookName,
+        input: Item[] = []
+    ): Item[] {
+        return this.config.hooks?.[stage]?.reduce((list, hook) => {
+            if (!this.state || !this.scenario) return list
+            return (hook(list, this.state, this.scenario, this) as Item[]) || list
+        }, input) ?? input
     }
 
     /**
