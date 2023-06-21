@@ -255,7 +255,7 @@ export interface ScenarioData<RoleKey extends string = 'role', ContentKey extend
          *   % use priority assistant
          *   % use priority assistant, user
          */
-        priority?: string[]
+        priority?: string[] | string
         parserOverrides?: DeepPartial<ScenarioParserConfig>
         rolePlaceholders?: boolean
     }
