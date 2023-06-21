@@ -126,7 +126,9 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         if (this.state.act == null) return null
         
         const messages = this.execute(context ?? {}, this.state.act)
-        return returnHistory ? this.state.history : messages
+        return returnHistory
+            ? this.state.history
+            : this.runHooks('nextReturns', messages ?? undefined)
     }
     
     public getMessages(act?: ActName): ScenarioMessage<RoleKey, ContentKey>[] | null {

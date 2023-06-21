@@ -37,7 +37,7 @@ export type ScenarioHook<RoleKey extends string = 'role', ContentKey extends str
 export type HistoryManagerHookName = 'afterInit' | 'afterLoad' | 'beforeSave'
     | 'beforeClearContext' | 'beforeNext' | 'afterBuild' | 'beforeGetMessages'
     | 'beforePrintHistory' | 'beforePushMessage' | 'beforePushContext' | 'getActQueue'
-    | 'beforeGetContexts'
+    | 'beforeGetContexts' | 'nextReturns'
 
 export interface HistoryManagerConfig<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     actions?: Record<string, ScenarioAction<RoleKey, ContentKey>>
@@ -234,6 +234,28 @@ export interface ScenarioData<RoleKey extends string = 'role', ContentKey extend
     }
     config: ScenarioConfig & {
         order: ActName[]
+        /**
+         * The priority of actors for each act
+         * @default ['user', 'assistant']
+         * 
+         * Usually all acts requires user's input as a context, so the queue of processing should be:
+         * user input -> moving to next act, build its messages with the user context
+         * -> request assistant with the whole history
+         * -> push the answer to the history
+         * -> output the answer to the user
+         * 
+         * So, the user is always between the acts - the result of the previous act is the AI's answer to the user
+         * And the only one difference to make user fills it as vice versa is to skip the input for the first act.
+         * Then, AI will be prompted first with the messages of the first act, and then the user will receive the answer
+         * as the prompt for the second act.
+         * 
+         * In fact, to skip the input for the first act, you can just set the priority of the scenario to ['assistant'],
+         * or just 'assistant':
+         * @example
+         *   % use priority assistant
+         *   % use priority assistant, user
+         */
+        priority?: string[]
         parserOverrides?: DeepPartial<ScenarioParserConfig>
         rolePlaceholders?: boolean
     }
