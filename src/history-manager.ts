@@ -18,15 +18,18 @@ import { mergeContexts } from './utils.js'
 
 export default class HistoryManager<RoleKey extends string = 'role', ContentKey extends string = 'content'> {
     public config: HistoryManagerConfig<RoleKey, ContentKey>
+    public stash: any
     
     public state: ScenarioState<RoleKey, ContentKey> | null = null
     public scenario: Scenario<RoleKey, ContentKey> | null = null
 
-    constructor(config?: HistoryManagerConfig<RoleKey, ContentKey>) {
+    constructor(config?: HistoryManagerConfig<RoleKey, ContentKey>, stash?: any) {
         this.config = Object.assign(
             {fullLog: false, costOnly: false},
             config ?? {}
         )
+        
+        this.stash = stash ?? {}
     }
     
     public init(scenario: string | ScenarioData<RoleKey, ContentKey> | Scenario<RoleKey, ContentKey>, parserConfig?: DeepPartial<ScenarioParserConfig>) {
