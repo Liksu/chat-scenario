@@ -56,7 +56,7 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
         )
     }
     
-    private getConfigsChain(act?: ActName): ScenarioConfig[] {
+    private getConfigsChain(act?: ActName | null): ScenarioConfig[] {
         const chain = [this.scenario.acts[this.defaultAct]?.config, this.scenario.config]
         if (act && act !== this.defaultAct) chain.unshift(this.scenario.acts[act]?.config)
         return chain.filter(Boolean)
@@ -66,7 +66,7 @@ export default class Scenario<RoleKey extends string = 'role', ContentKey extend
         return Object.keys(this.scenario.acts[act]?.placeholders ?? {})
     }
 
-    public getActConfig(act: ActName, inherited = true): ScenarioConfig | null {
+    public getActConfig(act: ActName | null, inherited = true): ScenarioConfig | null {
         const chain = this.getConfigsChain(act)
         if (!inherited) return chain[0] ?? null
 
