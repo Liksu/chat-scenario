@@ -14,9 +14,9 @@ export type ScenarioConfigRecognizedValue = string | number | boolean
 /**
  * Object to store the configuration parsed from the scenario text
  */
-// export type ScenarioConfig = Record<string, ScenarioConfigRecognizedValue | ScenarioConfigRecognizedValue[]>
+export type ScenarioConfigValue = ScenarioConfigRecognizedValue | ScenarioConfigRecognizedValue[] | ScenarioConfig
 export interface ScenarioConfig {
-    [key: string]: ScenarioConfigRecognizedValue | ScenarioConfigRecognizedValue[] | ScenarioConfig
+    [key: string]: ScenarioConfigValue
 }
 
 export type ScenarioAction<RoleKey extends string = 'role', ContentKey extends string = 'content'> = (

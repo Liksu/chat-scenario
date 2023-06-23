@@ -6,6 +6,7 @@ import {
     HistoryManagerConfig,
     HistoryManagerHookName,
     ScenarioAction,
+    ScenarioConfigValue,
     ScenarioContext,
     ScenarioData,
     ScenarioMessage,
@@ -215,6 +216,14 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     public getActData(act: ActName | null): ActData<RoleKey, ContentKey> | null {
         if (!act) return null
         return this.state?.scenario?.acts[act] ?? null
+    }
+    
+    public getConfigValue(key: string, act?: ActName | null): ScenarioConfigValue | null {
+        const config = this.scenario?.getActConfig(act ?? null)
+        if (!config) return null
+        
+        const value = config[key] ?? null
+        return value === '' ? true : value
     }
 
     public printHistory(skipRoles: string | string[] = []): string | null {
