@@ -31,7 +31,8 @@ export type ScenarioHook<RoleKey extends string = 'role', ContentKey extends str
     input: ScenarioMessage<RoleKey, ContentKey>[] | ScenarioContext[] | unknown,
     state: ScenarioState<RoleKey, ContentKey>,
     scenario: Scenario<RoleKey, ContentKey>,
-    manager: HistoryManager<RoleKey, ContentKey>
+    manager: HistoryManager<RoleKey, ContentKey>,
+    stage: HistoryManagerHookName
 ) => ScenarioMessage<RoleKey, ContentKey>[] | ScenarioContext[] | void
 
 export type HistoryManagerHookName = 'afterInit' | 'afterLoad' | 'beforeSave'

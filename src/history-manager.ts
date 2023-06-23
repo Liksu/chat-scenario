@@ -236,7 +236,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
     ): Item[] {
         return this.config.hooks?.[stage]?.reduce((list, hook) => {
             if (!this.state || !this.scenario) return list
-            return (hook(list, this.state, this.scenario, this) as Item[]) || list
+            return (hook(list, this.state, this.scenario, this, stage) as Item[]) || list
         }, input) ?? input
     }
 
