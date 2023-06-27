@@ -1,4 +1,4 @@
-import { ScenarioData } from '../src/interfaces'
+import { ScenarioData } from '../src'
 
 export default {
     acts: {
@@ -6,12 +6,12 @@ export default {
             messages: [
                 {
                     role: 'user',
-                    content: '{userInput}',
+                    content: '{user-input:name}\nPlease, return the answer in the JSON format: { "answer": "the answer", "confidence": "the confidence" }',
                 }
             ],
             hasPlaceholders: true,
             placeholders: {
-                userInput: null
+                'user-input:name': 'default text'
             },
             config: {
                 order: ['user', 'assistant'],

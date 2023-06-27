@@ -14,7 +14,7 @@ export const ACT_BRACKETS_REGEXP = /^\s*\[\s*|\s*]\s*$/g
 export const CHECK_ACT_REGEXP = /^\s*\[.*?]\s*$/m
 export const DEFAULT_CONTENT_REGEXP = /^(.+?)\n\s*\n\s*\[.*?]\s*\n/s
 export const CONFIG_LINE_REGEXP = /^\s*(?<key>[^=]*?)\s*=\s*(?<value>.*?)\s*$/
-export const PLACEHOLDERS_REGEXP = /\{([^{}]+?)}/g
+export const PLACEHOLDERS_REGEXP = /\{(\w[^{}\n]*?)}/g
 export const CONFIG_DIRECTIVE_REGEXP = /^[\w.-]+$/
 export const HOOK_FUNCTION_REGEXP = /@(?<name>[a-z]\w*)\((?<params>[^)]+)\)/i
 

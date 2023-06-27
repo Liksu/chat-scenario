@@ -6,7 +6,11 @@
 user:
     // the user will write a prompt and the assistant will respond
     // because of specified order
-    {userInput}
+    {user-input:name|default text}\
+    Please, return the answer in the JSON format: {
+        "answer": "the answer",
+        "confidence": "the confidence"
+    }
 
 []
 // here is still the default act
