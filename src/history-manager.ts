@@ -50,7 +50,11 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         if (this.config.costOnly) {
             this.state.cost = {
                 requests: [],
-                totalTokens: 0,
+                totalTokens: {
+                    completion_tokens: 0,
+                    prompt_tokens: 0,
+                    total_tokens: 0,
+                },
             }
         }
         
@@ -158,13 +162,25 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         this.state?.history.push(...messages)
     }
 
-    public addCost(cost: HistoryCostItem): number | null {
+    public addCost(cost: HistoryCostItem): HistoryCostItem | null {
         if (!this.state) return null
         if (!this.config.costOnly) return null
-        if (!this.state.cost) this.state.cost = {requests: [], totalTokens: 0}
+        if (!this.state.cost) {
+            this.state.cost = {
+                requests: [],
+                totalTokens: {
+                    completion_tokens: 0,
+                    prompt_tokens: 0,
+                    total_tokens: 0,
+                }
+            }
+        }
         
         this.state.cost.requests.push(cost)
-        this.state.cost.totalTokens += cost.total_tokens
+        
+        this.state.cost.totalTokens.total_tokens += cost.total_tokens
+        this.state.cost.totalTokens.completion_tokens += cost.completion_tokens
+        this.state.cost.totalTokens.prompt_tokens += cost.prompt_tokens
         
         return this.state.cost.totalTokens
     }

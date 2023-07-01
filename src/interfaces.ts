@@ -55,7 +55,7 @@ export interface HistoryCostItem {
 
 export interface HistoryCost<Item = HistoryCostItem> {
     requests: Item[]
-    totalTokens: number
+    totalTokens: Item
 }
 
 export interface ScenarioInteractionLogItem {
