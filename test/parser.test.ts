@@ -1,8 +1,7 @@
 import { readFileSync } from 'fs'
-import { ScenarioParser } from '../src'
+import { ScenarioParser, ScenarioParserConfig } from '../src'
 import { colorsScenarioReference } from './colors.reference'
 import chatScenarioReference from './chat.reference'
-import { ScenarioParserConfig } from '../src/interfaces'
 
 const colorsScenarioText = readFileSync('test/colors.scenario', 'utf8')
 const chatScenarioText = readFileSync('test/chat.scenario', 'utf8')

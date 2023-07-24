@@ -185,7 +185,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
         return this.state.cost.totalTokens
     }
     
-    public log(request: unknown, response: unknown) {
+    public log(request: unknown, response: unknown, rest?: object) {
         if (!this.state || !this.config.fullLog) return
         if (!this.state.log) this.state.log = []
         
@@ -193,6 +193,7 @@ export default class HistoryManager<RoleKey extends string = 'role', ContentKey 
             datetime: Date.now(),
             request,
             response,
+            ...(rest || {}),
         })
     }
 
